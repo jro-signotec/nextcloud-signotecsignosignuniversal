@@ -1,0 +1,184 @@
+.sectionSignotecSignoSignUniversal {
+	padding: 30px;
+
+	.settings-form {
+		display: flex;
+		flex-direction: column;
+		gap: calc(var(--default-grid-baseline) * 5);
+	}
+
+	.form-group {
+		display: flex;
+		flex-direction: column;
+		gap: var(--default-grid-baseline);
+
+		label {
+			font-weight: bold;
+		}
+
+		input[type='text'],
+		input[type='password'] {
+			width: 100%;
+			max-width: 512px;
+			height: var(--default-clickable-area);
+			padding: 0 calc(var(--default-grid-baseline) * 2);
+			border: 2px solid var(--color-border-maxcontrast);
+			border-radius: var(--border-radius);
+			color: var(--color-main-text);
+			background-color: var(--color-main-background);
+			box-sizing: border-box;
+
+			&:focus {
+				border-color: var(--color-primary-element);
+				outline: none;
+			}
+		}
+
+		.hint {
+			color: var(--color-text-maxcontrast);
+			margin: 0;
+		}
+	}
+
+	.webhook-header {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: calc(var(--default-grid-baseline) * 4);
+		margin-bottom: calc(var(--default-grid-baseline) * 8);
+
+		h3 {
+			margin: 0;
+		}
+	}
+
+	.signature-fields {
+		display: flex;
+		flex-direction: column;
+		gap: calc(var(--default-grid-baseline) * 3);
+
+		.section-header {
+			display: flex;
+			align-items: flex-start;
+			justify-content: space-between;
+			flex-wrap: wrap;
+			gap: calc(var(--default-grid-baseline) * 3);
+
+			h3 {
+				margin: 0 0 var(--default-grid-baseline);
+			}
+
+			.section-description {
+				color: var(--color-text-maxcontrast);
+				margin: 0;
+			}
+		}
+	}
+
+	.empty-state {
+		color: var(--color-text-maxcontrast);
+		padding: calc(var(--default-grid-baseline) * 6);
+		text-align: center;
+		border: 2px dashed var(--color-border);
+		border-radius: var(--border-radius);
+	}
+
+	.table-wrapper {
+		overflow-x: auto;
+		-webkit-overflow-scrolling: touch;
+	}
+
+	.signature-table {
+		width: 100%;
+		border-collapse: collapse;
+
+		th,
+		td {
+			padding: var(--default-grid-baseline) calc(var(--default-grid-baseline) * 2);
+			text-align: start;
+			border-bottom: 1px solid var(--color-border);
+			vertical-align: middle;
+			white-space: nowrap;
+		}
+
+		th {
+			font-weight: bold;
+			color: var(--color-text-maxcontrast);
+		}
+
+		td input[type='text'] {
+			min-width: 120px;
+		}
+
+		td input[type='number'] {
+			min-width: 55px;
+			max-width: 70px;
+		}
+
+		td input[type='text'],
+		td input[type='number'] {
+			width: 100%;
+			height: 34px;
+			padding: 0 calc(var(--default-grid-baseline) * 2);
+			border: 2px solid var(--color-border-maxcontrast);
+			border-radius: var(--border-radius);
+			color: var(--color-main-text);
+			background-color: var(--color-main-background);
+			box-sizing: border-box;
+
+			&:focus {
+				border-color: var(--color-primary-element);
+				outline: none;
+			}
+		}
+
+		.checkbox-cell {
+			text-align: center;
+
+			input[type='checkbox'] {
+				width: 18px;
+				height: 18px;
+				margin: 0;
+				cursor: pointer;
+				accent-color: var(--color-primary-element);
+			}
+		}
+
+		.actions-cell {
+			display: flex;
+			gap: var(--default-grid-baseline);
+			align-items: center;
+		}
+	}
+
+	.form-actions {
+		margin-top: calc(var(--default-grid-baseline) * 2);
+	}
+
+	.icon-button {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 34px;
+		height: 34px;
+		padding: 0;
+		background: none;
+		border: none;
+		border-radius: var(--border-radius);
+		cursor: pointer;
+		color: var(--color-main-text);
+
+		&:hover {
+			background-color: var(--color-background-hover);
+		}
+
+		&.danger {
+			color: var(--color-error);
+
+			&:hover {
+				background-color: var(--color-error);
+				color: #fff;
+			}
+		}
+	}
+}

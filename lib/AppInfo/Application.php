@@ -1,0 +1,29 @@
+<?php
+
+declare(strict_types=1);
+
+namespace OCA\SignotecSignoSignUniversal\AppInfo;
+
+use OCP\AppFramework\App;
+use OCP\AppFramework\Bootstrap\IBootContext;
+use OCP\AppFramework\Bootstrap\IBootstrap;
+use OCP\AppFramework\Bootstrap\IRegistrationContext;
+use OCP\Util;
+
+final class Application extends App implements IBootstrap {
+	public const APP_ID = 'signotecsignosignuniversal';
+
+	public function __construct() {
+		parent::__construct(self::APP_ID);
+	}
+
+	#[\Override]
+	public function register(IRegistrationContext $context): void {
+		Util::addScript(self::APP_ID, self::APP_ID . '-pdfContextMenu', 'files');
+		Util::addStyle(self::APP_ID, self::APP_ID . '-pdfContextMenu');
+	}
+
+	#[\Override]
+	public function boot(IBootContext $context): void {
+	}
+}

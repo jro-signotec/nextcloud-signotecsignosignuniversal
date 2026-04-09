@@ -1,0 +1,17 @@
+/.idea/
+/*.iml
+
+/vendor/
+/vendor-bin/*/vendor/
+
+/.php-cs-fixer.cache
+/tests/.phpunit.cache
+
+/node_modules/
+/js/
+/css/
+
+CLAUDE.md
+.claude/settings.local.json
+translationtool.phar
+/translationfiles

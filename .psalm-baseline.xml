@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<files psalm-version="6.16.1@f1f5de594dc76faf8784e02d3dc4716c91c6f6ac">
+  <file src="lib/AppInfo/Application.php">
+    <UnusedClass>
+      <code><![CDATA[Application]]></code>
+    </UnusedClass>
+  </file>
+  <file src="lib/Controller/ApiController.php">
+    <MissingDependency>
+      <code><![CDATA[$this->rootFolder]]></code>
+      <code><![CDATA[private]]></code>
+    </MissingDependency>
+    <MixedArgument>
+      <code><![CDATA[$signatureFieldsResult['errors'] ?? []]]></code>
+    </MixedArgument>
+    <MixedArgumentTypeCoercion>
+      <code><![CDATA[$sharingcaseCommentDto->toArray()]]></code>
+    </MixedArgumentTypeCoercion>
+    <MixedArrayAccess>
+      <code><![CDATA[$nodes[0]]]></code>
+    </MixedArrayAccess>
+    <MixedAssignment>
+      <code><![CDATA[$fileId]]></code>
+      <code><![CDATA[$fileId]]></code>
+      <code><![CDATA[$nodes]]></code>
+      <code><![CDATA[$userFolder]]></code>
+    </MixedAssignment>
+    <MixedMethodCall>
+      <code><![CDATA[getById]]></code>
+    </MixedMethodCall>
+    <MixedOperand>
+      <code><![CDATA[$notifyResult['error']]]></code>
+      <code><![CDATA[$sharingcaseResult['error']]]></code>
+      <code><![CDATA[$viewerResult['error']]]></code>
+    </MixedOperand>
+    <UnusedClass>
+      <code><![CDATA[ApiController]]></code>
+    </UnusedClass>
+  </file>
+  <file src="lib/Controller/SettingsController.php">
+    <UnusedClass>
+      <code><![CDATA[SettingsController]]></code>
+    </UnusedClass>
+  </file>
+  <file src="lib/Controller/WebhookController.php">
+    <InvalidTemplateParam>
+      <code><![CDATA[DataResponse<400, array{error: 'Invalid event type or missing document id'|'Unsupported webhook payload'}, array<never, never>>|DataResponse<int, array|null|object|scalar, array<string, mixed>>]]></code>
+    </InvalidTemplateParam>
+    <MixedArgumentTypeCoercion>
+      <code><![CDATA[$sharingcase]]></code>
+    </MixedArgumentTypeCoercion>
+    <MixedArrayAccess>
+      <code><![CDATA[$params['Event']['EventData']]]></code>
+      <code><![CDATA[$params['Event']['EventData']['Document']]]></code>
+      <code><![CDATA[$params['Event']['EventData']['Document']['DocumentId']]]></code>
+      <code><![CDATA[$params['Event']['EventData']['SharingCase']]]></code>
+    </MixedArrayAccess>
+    <MixedAssignment>
+      <code><![CDATA[$candidate]]></code>
+      <code><![CDATA[$sharingcase]]></code>
+      <code><![CDATA[$viewerIndexObj]]></code>
+    </MixedAssignment>
+  </file>
+  <file src="lib/Db/PendingWebhook.php">
+    <PossiblyUnusedProperty>
+      <code><![CDATA[$documentId]]></code>
+      <code><![CDATA[$expiresAt]]></code>
+      <code><![CDATA[$fileId]]></code>
+      <code><![CDATA[$lastSourceTimestamp]]></code>
+      <code><![CDATA[$nonce]]></code>
+      <code><![CDATA[$processedAt]]></code>
+      <code><![CDATA[$sharingcaseId]]></code>
+      <code><![CDATA[$status]]></code>
+      <code><![CDATA[$token]]></code>
+      <code><![CDATA[$userId]]></code>
+      <code><![CDATA[$workflowType]]></code>
+    </PossiblyUnusedProperty>
+    <PropertyNotSetInConstructor>
+      <code><![CDATA[PendingWebhook]]></code>
+    </PropertyNotSetInConstructor>
+  </file>
+  <file src="lib/Db/PendingWebhookMapper.php">
+    <PossiblyUnusedMethod>
+      <code><![CDATA[__construct]]></code>
+    </PossiblyUnusedMethod>
+  </file>
+  <file src="lib/Dto/SignatureFieldDto.php">
+    <PossiblyUnusedMethod>
+      <code><![CDATA[getId]]></code>
+      <code><![CDATA[toViewerPayload]]></code>
+    </PossiblyUnusedMethod>
+  </file>
+  <file src="lib/Migration/Version000002Date20260401000000.php">
+    <UndefinedDocblockClass>
+      <code><![CDATA[$schema->createTable('stsu_pending_webhooks')]]></code>
+      <code><![CDATA[$table]]></code>
+      <code><![CDATA[$table]]></code>
+      <code><![CDATA[$table]]></code>
+      <code><![CDATA[$table]]></code>
+      <code><![CDATA[$table]]></code>
+      <code><![CDATA[$table]]></code>
+      <code><![CDATA[$table]]></code>
+      <code><![CDATA[$table]]></code>
+      <code><![CDATA[$table]]></code>
+      <code><![CDATA[$table]]></code>
+      <code><![CDATA[$table]]></code>
+      <code><![CDATA[$table]]></code>
+      <code><![CDATA[$table]]></code>
+      <code><![CDATA[$table]]></code>
+      <code><![CDATA[$table]]></code>
+      <code><![CDATA[$table]]></code>
+      <code><![CDATA[$table]]></code>
+      <code><![CDATA[$table]]></code>
+      <code><![CDATA[$table]]></code>
+      <code><![CDATA[$table]]></code>
+    </UndefinedDocblockClass>
+    <UnusedClass>
+      <code><![CDATA[Version000002Date20260401000000]]></code>
+    </UnusedClass>
+  </file>
+  <file src="lib/Sections/UniversalAdmin.php">
+    <UnusedClass>
+      <code><![CDATA[UniversalAdmin]]></code>
+    </UnusedClass>
+  </file>
+  <file src="lib/Service/PendingWebhookService.php">
+    <MixedOperand>
+      <code><![CDATA[$lastRun]]></code>
+    </MixedOperand>
+    <PossiblyUnusedMethod>
+      <code><![CDATA[__construct]]></code>
+    </PossiblyUnusedMethod>
+    <PossiblyUnusedReturnValue>
+      <code><![CDATA[int]]></code>
+    </PossiblyUnusedReturnValue>
+  </file>
+  <file src="lib/Service/SettingsService.php">
+    <MixedReturnTypeCoercion>
+      <code><![CDATA[$normalized]]></code>
+      <code><![CDATA[list<array<string, mixed>>]]></code>
+    </MixedReturnTypeCoercion>
+    <PossiblyUnusedMethod>
+      <code><![CDATA[__construct]]></code>
+    </PossiblyUnusedMethod>
+  </file>
+  <file src="lib/Service/SignoSignUniversal.php">
+    <MixedAssignment>
+      <code><![CDATA[$result]]></code>
+      <code><![CDATA[$result['success']]]></code>
+    </MixedAssignment>
+    <MixedReturnTypeCoercion>
+      <code><![CDATA[$result]]></code>
+      <code><![CDATA[$result]]></code>
+      <code><![CDATA[$result]]></code>
+      <code><![CDATA[array<string, mixed>]]></code>
+      <code><![CDATA[array<string, mixed>]]></code>
+      <code><![CDATA[array<string, mixed>]]></code>
+    </MixedReturnTypeCoercion>
+    <PossiblyUnusedMethod>
+      <code><![CDATA[__construct]]></code>
+    </PossiblyUnusedMethod>
+  </file>
+  <file src="lib/Service/WebhookProcessingService.php">
+    <MissingDependency>
+      <code><![CDATA[$this->rootFolder]]></code>
+      <code><![CDATA[private]]></code>
+    </MissingDependency>
+    <MixedAssignment>
+      <code><![CDATA[$files]]></code>
+      <code><![CDATA[$userFolder]]></code>
+    </MixedAssignment>
+    <MixedMethodCall>
+      <code><![CDATA[getById]]></code>
+    </MixedMethodCall>
+    <PossiblyUnusedMethod>
+      <code><![CDATA[__construct]]></code>
+    </PossiblyUnusedMethod>
+  </file>
+  <file src="lib/Settings/UniversalAdmin.php">
+    <UnusedClass>
+      <code><![CDATA[UniversalAdmin]]></code>
+    </UnusedClass>
+  </file>
+</files>

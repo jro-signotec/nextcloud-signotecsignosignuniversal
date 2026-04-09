@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<info xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://apps.nextcloud.com/schema/apps/info.xsd">
+	<id>signotecsignosignuniversal</id>
+	<name>signotec signoSign/Universal</name>
+	<summary>Sign documents with signotec signoSign/Universal</summary>
+	<description>Integrates signotec signoSign/Universal into Nextcloud to sign documents locally or send them for remote signature workflows via email.</description>
+	<version>1.0.0</version>
+	<licence>AGPL-3.0-or-later</licence>
+	<author mail="integrations@signotec.de" homepage="https://www.signotec.com/">signotec GmbH</author>
+	<namespace>SignotecSignoSignUniversal</namespace>
+	<category>integration</category>
+	<category>office</category>
+	<bugs>https://support.signotec.com/de/support/tickets/new</bugs>
+	<screenshots>
+		<screenshot order="1">screenshots/Gallery_Card_Nextcloud_App_Store_SIGN_Screenshot_1.png</screenshot>
+		<screenshot order="2">screenshots/Gallery_Card_Nextcloud_App_Store_EDIT_Screenshot_2.png</screenshot>
+		<screenshot order="3">screenshots/Gallery_Card_Nextcloud_App_Store_SHARE_Screenshot_3.png</screenshot>
+		<screenshot order="4">screenshots/Gallery_Card_Nextcloud_App_Store_MOBILE_Screenshot_4.png</screenshot>
+	</screenshots>
+	<dependencies>
+		<nextcloud min-version="32" max-version="32" />
+	</dependencies>
+	<settings>
+		<admin>OCA\SignotecSignoSignUniversal\Settings\UniversalAdmin</admin>
+		<admin-section>OCA\SignotecSignoSignUniversal\Sections\UniversalAdmin</admin-section>
+	</settings>
+</info>

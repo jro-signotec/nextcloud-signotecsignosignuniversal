@@ -1,0 +1,56 @@
+.send-modal-content {
+	padding: calc(var(--default-grid-baseline) * 6);
+	display: flex;
+	flex-direction: column;
+	gap: calc(var(--default-grid-baseline) * 4);
+
+	.stc-title {
+		margin: 0;
+	}
+
+	.external-label {
+		display: flex;
+		flex-direction: column;
+		gap: var(--default-grid-baseline);
+
+		label {
+			font-weight: bold;
+		}
+
+		.input-field {
+			width: 100%;
+			margin: 0;
+		}
+	}
+
+	hr {
+		border: none;
+		border-top: 1px solid var(--color-border);
+		margin: 0;
+	}
+
+	.select__label {
+		font-weight: bold;
+	}
+
+	.v-select {
+		width: 100%;
+	}
+
+	.confirm-modal__buttons {
+		display: flex;
+		flex-direction: row;
+		flex-wrap: wrap;
+		justify-content: flex-end;
+		gap: calc(var(--default-grid-baseline) * 2);
+
+		@media (max-width: 480px) {
+			flex-direction: column;
+
+			.button-vue {
+				width: 100%;
+				justify-content: center;
+			}
+		}
+	}
+}

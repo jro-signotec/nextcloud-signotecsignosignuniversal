@@ -1,0 +1,15 @@
+js/
+css/
+vendor/
+vendor-bin/
+node_modules/
+docs/
+tests/
+coverage
+.vscode/
+.sfdx/
+.phpunit.cache/
+.git/
+.github/
+vendor-bin/openapi-extractor/vendor/adhocore/cli/src/Output/ProgressBar.php
+vendor-bin/openapi-extractor/vendor/adhocore/cli/src/Output/Table.php

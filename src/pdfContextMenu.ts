@@ -60,7 +60,7 @@ const showRequestError = (error: unknown, fallbackLogLabel: string): void => {
 		showError(
 			t(
 				'signotecsignosignuniversal',
-				'Please check your signoSign/Universal app settings: Username, Password and Base URL must be set.',
+				'Please check your signoSign app settings: Username, Password and Base URL must be set.',
 			),
 		)
 		return
@@ -70,7 +70,7 @@ const showRequestError = (error: unknown, fallbackLogLabel: string): void => {
 		showError(
 			t(
 				'signotecsignosignuniversal',
-				'Invalid credentials. Please check your signoSign/Universal app settings: Username and Password must be correct.',
+				'Invalid credentials. Please check your signoSign app settings: Username and Password must be correct.',
 			),
 		)
 		return
@@ -80,7 +80,7 @@ const showRequestError = (error: unknown, fallbackLogLabel: string): void => {
 		showError(
 			t(
 				'signotecsignosignuniversal',
-				'Invalid URL. Please check your signoSign/Universal app settings: URL must be correct.',
+				'Invalid URL. Please check your signoSign app settings: URL must be correct.',
 			),
 		)
 		return

@@ -81,6 +81,126 @@
 					</NcButton>
 				</div>
 
+				<div class="file-comments">
+					<h3>
+						{{
+							t(
+								'signotecsignosignuniversal',
+								'File comments'
+							)
+						}}
+					</h3>
+					<p class="section-description">
+						{{
+							t(
+								'signotecsignosignuniversal',
+								'Automatically add a comment to the file activity when sending or signing.'
+							)
+						}}
+					</p>
+
+					<div class="form-group">
+						<label for="comment-language-send">
+							{{
+								t(
+									'signotecsignosignuniversal',
+									'Comment when sending for signing'
+								)
+							}}
+						</label>
+						<select id="comment-language-send" v-model="settings.commentLanguageSend">
+							<option value="none">
+								{{
+									t('signotecsignosignuniversal', 'No comment')
+								}}
+							</option>
+							<option value="de">
+								{{
+									t('signotecsignosignuniversal', 'German')
+								}}
+							</option>
+							<option value="en">
+								{{
+									t('signotecsignosignuniversal', 'English')
+								}}
+							</option>
+						</select>
+					</div>
+
+					<div class="form-group">
+						<label for="comment-language-signed">
+							{{
+								t(
+									'signotecsignosignuniversal',
+									'Comment after signing'
+								)
+							}}
+						</label>
+						<select id="comment-language-signed" v-model="settings.commentLanguageSigned">
+							<option value="none">
+								{{
+									t('signotecsignosignuniversal', 'No comment')
+								}}
+							</option>
+							<option value="de">
+								{{
+									t('signotecsignosignuniversal', 'German')
+								}}
+							</option>
+							<option value="en">
+								{{
+									t('signotecsignosignuniversal', 'English')
+								}}
+							</option>
+						</select>
+					</div>
+				</div>
+
+				<div class="file-tags">
+					<h3>
+						{{
+							t(
+								'signotecsignosignuniversal',
+								'File tags'
+							)
+						}}
+					</h3>
+					<p class="section-description">
+						{{
+							t(
+								'signotecsignosignuniversal',
+								'Automatically assign a tag to the file when sending or signing. Leave empty to disable.'
+							)
+						}}
+					</p>
+
+					<div class="form-group">
+						<label for="tag-send">
+							{{
+								t(
+									'signotecsignosignuniversal',
+									'Tag when sending for signing'
+								)
+							}}
+						</label>
+						<input id="tag-send" v-model="settings.tagSend" type="text"
+							:placeholder="t('signotecsignosignuniversal', 'e.g. sent-for-signing')">
+					</div>
+
+					<div class="form-group">
+						<label for="tag-signed">
+							{{
+								t(
+									'signotecsignosignuniversal',
+									'Tag after signing'
+								)
+							}}
+						</label>
+						<input id="tag-signed" v-model="settings.tagSigned" type="text"
+							:placeholder="t('signotecsignosignuniversal', 'e.g. signed')">
+					</div>
+				</div>
+
 				<div class="signature-fields">
 					<div class="section-header">
 						<div>
@@ -304,6 +424,10 @@ const settings = ref({
 	password: '',
 	hasPassword: false,
 	signatureFields: [],
+	commentLanguageSend: 'none',
+	commentLanguageSigned: 'none',
+	tagSend: '',
+	tagSigned: '',
 })
 
 const isSaving = ref(false)
@@ -325,12 +449,21 @@ const normalizeSignatureFields = (fields) => {
 	}))
 }
 
+const VALID_COMMENT_LANGUAGES = new Set(['none', 'de', 'en'])
+
+const normalizeCommentLanguage = (value) =>
+	VALID_COMMENT_LANGUAGES.has(value) ? value : 'none'
+
 const normalizeSettingsResponse = (data) => ({
 	url: data?.url ?? '',
 	username: data?.username ?? '',
 	password: '',
 	hasPassword: Boolean(data?.hasPassword),
 	signatureFields: normalizeSignatureFields(data?.signatureFields),
+	commentLanguageSend: normalizeCommentLanguage(data?.commentLanguageSend),
+	commentLanguageSigned: normalizeCommentLanguage(data?.commentLanguageSigned),
+	tagSend: typeof data?.tagSend === 'string' ? data.tagSend : '',
+	tagSigned: typeof data?.tagSigned === 'string' ? data.tagSigned : '',
 })
 
 const fetchSettings = async () => {
@@ -388,6 +521,10 @@ const saveSettings = async () => {
 		const payload = {
 			url: settings.value.url,
 			username: settings.value.username,
+			commentLanguageSend: settings.value.commentLanguageSend,
+			commentLanguageSigned: settings.value.commentLanguageSigned,
+			tagSend: settings.value.tagSend,
+			tagSigned: settings.value.tagSigned,
 		}
 
 		const trimmedPassword = settings.value.password.trim()

@@ -7,6 +7,8 @@ namespace OCA\SignotecSignoSignUniversal\Controller;
 use OCA\SignotecSignoSignUniversal\Dto\SharingcaseCommentDto;
 use OCA\SignotecSignoSignUniversal\Dto\SignatureFieldDto;
 use OCA\SignotecSignoSignUniversal\Dto\ViewerIndexDto;
+use OCA\SignotecSignoSignUniversal\Service\FileCommentService;
+use OCA\SignotecSignoSignUniversal\Service\FileTagService;
 use OCA\SignotecSignoSignUniversal\Service\PendingWebhookService;
 use OCA\SignotecSignoSignUniversal\Service\SettingsService;
 use OCA\SignotecSignoSignUniversal\Service\SignoSignUniversal;
@@ -33,6 +35,8 @@ final class ApiController extends OCSController {
 		private PendingWebhookService $pendingWebhookService,
 		private LoggerInterface $logger,
 		private SettingsService $settingsService,
+		private FileCommentService $fileCommentService,
+		private FileTagService $fileTagService,
 	) {
 		parent::__construct($appName, $request);
 	}
@@ -491,6 +495,15 @@ final class ApiController extends OCSController {
 				'sharingcaseId' => $sharingcaseId,
 				'signatureFieldCount' => count($documentConfiguration['signatureFields']),
 			]);
+
+			$this->fileCommentService->addSendComment(
+				$fileId,
+				$userId,
+				$recipientEmail,
+				$this->settingsService->getCommentLanguageSend(),
+			);
+
+			$this->fileTagService->assignTag($fileId, $this->settingsService->getTagSend());
 
 			return new DataResponse([
 				'fileId' => $fileId,

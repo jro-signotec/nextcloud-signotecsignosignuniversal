@@ -36,12 +36,25 @@ final class SettingsController extends OCSController {
 		?string $username = null,
 		?string $password = null,
 		mixed $signatureFields = null,
+		?string $commentLanguageSend = null,
+		?string $commentLanguageSigned = null,
+		?string $tagSend = null,
+		?string $tagSigned = null,
 	): DataResponse {
 		if (!$this->groupManager->isAdmin($this->userId)) {
 			throw new OCSForbiddenException();
 		}
 
-		$result = $this->settingsService->setSettings($url, $username, $password, $signatureFields);
+		$result = $this->settingsService->setSettings(array_filter([
+			'url' => $url,
+			'username' => $username,
+			'password' => $password,
+			'signatureFields' => $signatureFields,
+			'commentLanguageSend' => $commentLanguageSend,
+			'commentLanguageSigned' => $commentLanguageSigned,
+			'tagSend' => $tagSend,
+			'tagSigned' => $tagSigned,
+		], static fn ($v) => $v !== null));
 
 		if (isset($result['error'])) {
 			return new DataResponse($result, 400);

@@ -17,6 +17,9 @@ final class WebhookProcessingService {
 		private SignoSignUniversal $signoSignUniversal,
 		private IRootFolder $rootFolder,
 		private LoggerInterface $logger,
+		private FileCommentService $fileCommentService,
+		private FileTagService $fileTagService,
+		private SettingsService $settingsService,
 	) {
 	}
 
@@ -127,6 +130,13 @@ final class WebhookProcessingService {
 		$file->putContent($signedPdfContent);
 		$file->touch(time());
 		$file->getParent()->touch();
+
+		$this->fileCommentService->addSignedComment(
+			(int)$fileId,
+			$this->settingsService->getCommentLanguageSigned(),
+		);
+
+		$this->fileTagService->assignTag((int)$fileId, $this->settingsService->getTagSigned());
 
 		$this->logger->info(self::LOG_PREFIX . 'file successfully updated', [
 			'documentId' => $documentId,

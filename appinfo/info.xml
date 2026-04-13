@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <info xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://apps.nextcloud.com/schema/apps/info.xsd">
 	<id>signotecsignosignuniversal</id>
-	<name>signotec signoSign/Universal</name>
-	<summary>Sign documents with signotec signoSign/Universal</summary>
-	<description>Integrates signotec signoSign/Universal into Nextcloud to sign documents locally or send them for remote signature workflows via email.</description>
+	<name>signotec signoSign</name>
+	<summary>Sign documents with signotec signoSign</summary>
+	<description>Integrates signotec signoSign into Nextcloud to sign documents locally or send them for remote signature workflows via email.</description>
 	<version>1.0.0</version>
 	<licence>AGPL-3.0-or-later</licence>
 	<author mail="integrations@signotec.de" homepage="https://www.signotec.com/">signotec GmbH</author>

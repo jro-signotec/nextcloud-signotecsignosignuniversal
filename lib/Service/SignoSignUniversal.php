@@ -408,13 +408,14 @@ final class SignoSignUniversal {
 			$formParams = [
 				'documentId' => $docId,
 				'emailAddressee' => $recipientEmail,
-				'password' => $password,
 				'comment' => $commentJson,
 				'documentConfiguration' => $documentConfigurationJson,
 			];
 
 			if ($tanTarget !== '') {
 				$formParams['tanAddressee'] = $tanTarget;
+			} else {
+				$formParams['password'] = $password;
 			}
 
 			$response = $this->getClient()->post($this->buildUrl('/sharingcases'), [

@@ -37,6 +37,11 @@
       <code><![CDATA[ApiController]]></code>
     </UnusedClass>
   </file>
+  <file src="lib/Controller/UserPrefsController.php">
+    <UnusedClass>
+      <code><![CDATA[UserPrefsController]]></code>
+    </UnusedClass>
+  </file>
   <file src="lib/Controller/SettingsController.php">
     <UnusedClass>
       <code><![CDATA[SettingsController]]></code>
@@ -134,7 +139,24 @@
       <code><![CDATA[int]]></code>
     </PossiblyUnusedReturnValue>
   </file>
+  <file src="lib/Service/FileCommentService.php">
+    <PossiblyUnusedMethod>
+      <code><![CDATA[__construct]]></code>
+    </PossiblyUnusedMethod>
+  </file>
+  <file src="lib/Service/FileTagService.php">
+    <PossiblyUnusedMethod>
+      <code><![CDATA[__construct]]></code>
+    </PossiblyUnusedMethod>
+  </file>
   <file src="lib/Service/SettingsService.php">
+    <MixedArgumentTypeCoercion>
+      <code><![CDATA[$entry]]></code>
+      <code><![CDATA[$index]]></code>
+    </MixedArgumentTypeCoercion>
+    <MixedAssignment>
+      <code><![CDATA[$signatureFields]]></code>
+    </MixedAssignment>
     <MixedReturnTypeCoercion>
       <code><![CDATA[$normalized]]></code>
       <code><![CDATA[list<array<string, mixed>>]]></code>

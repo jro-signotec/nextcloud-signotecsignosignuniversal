@@ -46,8 +46,12 @@
 </template>
 
 <script lang="ts">
+import axios from '@nextcloud/axios'
 import { t } from '@nextcloud/l10n'
 import { NcButton, NcModal, NcSelect, NcTextField } from '@nextcloud/vue'
+
+const generateOcsUrl = (path: string) => `/ocs/v2.php${path}?format=json`
+const PREFS_URL = generateOcsUrl('/apps/signotecsignosignuniversal/userprefs')
 
 type AuthMode = 'none' | 'password' | 'tan_sms' | 'tan_email'
 type AuthOption = { label: string; value: AuthMode }
@@ -149,8 +153,17 @@ export default {
 			return AuthType
 		},
 	},
-	mounted() {
-		this.$refs.recipientRef?.focus?.()
+	async mounted() {
+		try {
+			const res = await axios.get<{ ocs: { data: { authType: AuthMode } } }>(PREFS_URL)
+			const match = AuthType.find(o => o.value === res.data.ocs.data.authType)
+			if (match) {
+				this.authType = match
+			}
+		} catch {
+			// keep default
+		}
+		(this.$refs.recipientRef as { focus?: () => void } | undefined)?.focus?.()
 	},
 	methods: {
 		onReject() {
@@ -158,6 +171,10 @@ export default {
 			this.$emit('close')
 		},
 		onResolve() {
+			axios.post(PREFS_URL, { authType: this.authType.value }).catch(() => {
+				// best-effort, don't block signing
+			})
+
 			const data = {
 				recipientEmail: this.recipientEmail.trim(),
 				authType: this.authType,

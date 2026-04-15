@@ -7,8 +7,12 @@ namespace OCA\SignotecSignoSignUniversal\Service;
 use OCP\Comments\ICommentsManager;
 use Psr\Log\LoggerInterface;
 
-final class FileCommentService {
+class FileCommentService {
 	private const LOG_PREFIX = '[FileCommentService] ';
+	private const PLACEHOLDER_USERID = '@userid@';
+	private const PLACEHOLDER_MAILTO = '@mailto@';
+	private const PLACEHOLDER_AUTHTYPE = '@authtype@';
+	private const PLACEHOLDER_REASON = '@reason@';
 
 	public function __construct(
 		private ICommentsManager $commentsManager,
@@ -16,16 +20,22 @@ final class FileCommentService {
 	) {
 	}
 
-	public function addSendComment(int $fileId, string $userId, string $recipientEmail, string $language): void {
-		$message = match ($language) {
-			'de' => 'Via signotec signoSign verschickt an: ' . $recipientEmail,
-			'en' => 'Sent via signotec signoSign to: ' . $recipientEmail,
-			default => null,
-		};
-
-		if ($message === null) {
+	public function addSendComment(
+		int $fileId,
+		string $userId,
+		string $recipientEmail,
+		string $authType,
+		string $commentTemplate,
+	): void {
+		if ($commentTemplate === '') {
 			return;
 		}
+
+		$message = str_replace(
+			[self::PLACEHOLDER_MAILTO, self::PLACEHOLDER_AUTHTYPE, self::PLACEHOLDER_USERID],
+			[$recipientEmail, $authType, $userId],
+			$commentTemplate,
+		);
 
 		try {
 			$comment = $this->commentsManager->create('users', $userId, 'files', (string)$fileId);
@@ -41,16 +51,52 @@ final class FileCommentService {
 		}
 	}
 
-	public function addSignedComment(int $fileId, string $language): void {
-		$message = match ($language) {
-			'de' => 'Durch signotec signoSign aktualisiert',
-			'en' => 'Updated by signotec signoSign',
-			default => null,
-		};
-
-		if ($message === null) {
+	public function addRejectedComment(
+		int $fileId,
+		string $userId,
+		string $rejectionReason,
+		string $recipientEmail,
+		string $commentTemplate,
+	): void {
+		if ($commentTemplate === '') {
 			return;
 		}
+
+		$message = str_replace(
+			[self::PLACEHOLDER_REASON, self::PLACEHOLDER_USERID, self::PLACEHOLDER_MAILTO],
+			[$rejectionReason, $userId, $recipientEmail],
+			$commentTemplate,
+		);
+
+		try {
+			$comment = $this->commentsManager->create('bots', 'signotecsignosignuniversal', 'files', (string)$fileId);
+			$comment->setMessage($message);
+			$comment->setVerb('comment');
+			$this->commentsManager->save($comment);
+		} catch (\Throwable $e) {
+			$this->logger->warning(self::LOG_PREFIX . 'failed to add rejected comment', [
+				'fileId' => $fileId,
+				'userId' => $userId,
+				'error' => $e->getMessage(),
+			]);
+		}
+	}
+
+	public function addSignedComment(
+		int $fileId,
+		string $userId,
+		string $recipientEmail,
+		string $commentTemplate,
+	): void {
+		if ($commentTemplate === '') {
+			return;
+		}
+
+		$message = str_replace(
+			[self::PLACEHOLDER_USERID, self::PLACEHOLDER_MAILTO],
+			[$userId, $recipientEmail],
+			$commentTemplate,
+		);
 
 		try {
 			$comment = $this->commentsManager->create('bots', 'signotecsignosignuniversal', 'files', (string)$fileId);

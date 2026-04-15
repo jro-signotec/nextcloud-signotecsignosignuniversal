@@ -10,7 +10,7 @@ use OCP\Files\File;
 use OCP\Files\IRootFolder;
 use Psr\Log\LoggerInterface;
 
-final class WebhookProcessingService {
+class WebhookProcessingService {
 	private const LOG_PREFIX = '[WebhookProcessingService] ';
 
 	public function __construct(
@@ -32,6 +32,7 @@ final class WebhookProcessingService {
 		int|string $fileId,
 		string $userId,
 		?string $token = null,
+		string $recipientEmail = '',
 	): array {
 		$this->logger->info(self::LOG_PREFIX . 'starting document download and file update', [
 			'documentId' => $documentId,
@@ -133,10 +134,12 @@ final class WebhookProcessingService {
 
 		$this->fileCommentService->addSignedComment(
 			(int)$fileId,
-			$this->settingsService->getCommentLanguageSigned(),
+			$userId,
+			$recipientEmail,
+			$this->settingsService->getCommentSigned(),
 		);
 
-		$this->fileTagService->assignTag((int)$fileId, $this->settingsService->getTagSigned());
+		$this->fileTagService->assignTag((int)$fileId, $this->settingsService->getTagSigned(), $this->settingsService->getTagSend());
 
 		$this->logger->info(self::LOG_PREFIX . 'file successfully updated', [
 			'documentId' => $documentId,
@@ -239,6 +242,159 @@ final class WebhookProcessingService {
 		}
 
 		return $dto;
+	}
+
+	/**
+	 * @return array{dto: SharingcaseCommentDto|null, rejectedReason: string}
+	 */
+	public function parseSharingcaseCommentAndReason(string $sharingcaseId): array {
+		$tokenResult = $this->signoSignUniversal->getInstanceToken();
+		if (isset($tokenResult['error'])) {
+			$this->logger->error(self::LOG_PREFIX . 'failed to retrieve instance token for sharing case rejection', [
+				'sharingcaseId' => $sharingcaseId,
+				'error' => $tokenResult['error'],
+			]);
+
+			return ['dto' => null, 'rejectedReason' => ''];
+		}
+
+		$token = $tokenResult['token'] ?? null;
+		if (!is_string($token) || $token === '') {
+			$this->logger->error(self::LOG_PREFIX . 'sharing case rejection token response was empty or invalid', [
+				'sharingcaseId' => $sharingcaseId,
+			]);
+
+			return ['dto' => null, 'rejectedReason' => ''];
+		}
+
+		if (!ctype_digit($sharingcaseId)) {
+			$this->logger->warning(self::LOG_PREFIX . 'invalid sharing case id for rejection', [
+				'sharingcaseId' => $sharingcaseId,
+			]);
+
+			return ['dto' => null, 'rejectedReason' => ''];
+		}
+
+		try {
+			$sharingcaseResult = $this->signoSignUniversal->getSharingcase($token, (int)$sharingcaseId);
+		} finally {
+			$revokeResult = $this->signoSignUniversal->revokeInstanceToken($token);
+
+			if (isset($revokeResult['error'])) {
+				$this->logger->warning(self::LOG_PREFIX . 'failed to revoke instance token after reading sharing case rejection', [
+					'sharingcaseId' => $sharingcaseId,
+					'error' => $revokeResult['error'],
+				]);
+			}
+		}
+
+		if (isset($sharingcaseResult['error'])) {
+			$this->logger->warning(self::LOG_PREFIX . 'failed to load sharing case details for rejection', [
+				'sharingcaseId' => $sharingcaseId,
+				'error' => $sharingcaseResult['error'],
+			]);
+
+			return ['dto' => null, 'rejectedReason' => ''];
+		}
+
+		$rejectedReason = isset($sharingcaseResult['rejectedReason']) && is_string($sharingcaseResult['rejectedReason'])
+			? $sharingcaseResult['rejectedReason']
+			: '';
+
+		$commentJson = $sharingcaseResult['comment'] ?? null;
+		if (!is_string($commentJson) || $commentJson === '') {
+			$this->logger->warning(self::LOG_PREFIX . 'sharing case rejection does not contain a comment', [
+				'sharingcaseId' => $sharingcaseId,
+			]);
+
+			return ['dto' => null, 'rejectedReason' => $rejectedReason];
+		}
+
+		$commentArr = json_decode($commentJson, true);
+		if (!is_array($commentArr)) {
+			$this->logger->warning(self::LOG_PREFIX . 'sharing case rejection comment is not valid JSON', [
+				'sharingcaseId' => $sharingcaseId,
+			]);
+
+			return ['dto' => null, 'rejectedReason' => $rejectedReason];
+		}
+
+		$dto = SharingcaseCommentDto::fromArray($commentArr);
+
+		if ($dto === null) {
+			$this->logger->warning(self::LOG_PREFIX . 'sharing case rejection comment does not match expected DTO structure', [
+				'sharingcaseId' => $sharingcaseId,
+			]);
+
+			return ['dto' => null, 'rejectedReason' => $rejectedReason];
+		}
+
+		return ['dto' => $dto, 'rejectedReason' => $rejectedReason];
+	}
+
+	/**
+	 * @return array<string, mixed>
+	 */
+	public function handleRejection(
+		string $documentId,
+		int $fileId,
+		string $userId,
+		string $rejectionReason,
+		string $recipientEmail,
+	): array {
+		$this->logger->info(self::LOG_PREFIX . 'handling rejection for document', [
+			'documentId' => $documentId,
+			'fileId' => (string)$fileId,
+			'userId' => $userId,
+		]);
+
+		$tokenResult = $this->signoSignUniversal->getInstanceToken();
+		if (isset($tokenResult['error'])) {
+			$this->logger->error(self::LOG_PREFIX . 'failed to retrieve instance token for rejection cleanup', [
+				'documentId' => $documentId,
+				'error' => $tokenResult['error'],
+			]);
+
+			return ['error' => $tokenResult['error'], 'documentId' => $documentId, 'fileId' => $fileId, 'userId' => $userId];
+		}
+
+		$token = $tokenResult['token'] ?? null;
+		if (!is_string($token) || $token === '') {
+			return ['error' => 'Could not retrieve instance token', 'documentId' => $documentId, 'fileId' => $fileId, 'userId' => $userId];
+		}
+
+		try {
+			if (ctype_digit($documentId)) {
+				$deleteResult = $this->signoSignUniversal->deleteDocument($token, (int)$documentId);
+
+				if (isset($deleteResult['error'])) {
+					$this->logger->warning(self::LOG_PREFIX . 'failed to delete document after rejection', [
+						'documentId' => $documentId,
+						'error' => $deleteResult['error'],
+					]);
+				}
+			}
+		} finally {
+			$this->signoSignUniversal->revokeInstanceToken($token);
+		}
+
+		$this->fileCommentService->addRejectedComment(
+			$fileId,
+			$userId,
+			$rejectionReason,
+			$recipientEmail,
+			$this->settingsService->getCommentRejected(),
+		);
+
+		$this->fileTagService->assignTag($fileId, $this->settingsService->getTagRejected(), $this->settingsService->getTagSend());
+
+		$this->logger->info(self::LOG_PREFIX . 'rejection handled successfully', [
+			'documentId' => $documentId,
+			'fileId' => (string)$fileId,
+			'userId' => $userId,
+		]);
+
+		return ['message' => 'Rejection handled successfully', 'documentId' => $documentId, 'fileId' => $fileId, 'userId' => $userId];
 	}
 
 	/**

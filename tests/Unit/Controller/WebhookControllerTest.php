@@ -10,7 +10,9 @@ use OCA\SignotecSignoSignUniversal\Service\PendingWebhookService;
 use OCA\SignotecSignoSignUniversal\Service\WebhookProcessingService;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\DataResponse;
+use OCP\IL10N;
 use OCP\IRequest;
+use OCP\L10N\IFactory;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
@@ -20,15 +22,21 @@ class WebhookControllerTest extends TestCase {
 	private WebhookProcessingService&MockObject $webhookProcessingService;
 	private PendingWebhookService&MockObject $pendingWebhookService;
 	private LoggerInterface&MockObject $logger;
+	private IFactory&MockObject $l10nFactory;
 	private WebhookController $controller;
 
 	protected function setUp(): void {
 		parent::setUp();
 
+		$l10n = $this->createMock(IL10N::class);
+		$l10n->method('t')->willReturnArgument(0);
+
 		$this->request = $this->createMock(IRequest::class);
 		$this->webhookProcessingService = $this->createMock(WebhookProcessingService::class);
 		$this->pendingWebhookService = $this->createMock(PendingWebhookService::class);
 		$this->logger = $this->createMock(LoggerInterface::class);
+		$this->l10nFactory = $this->createMock(IFactory::class);
+		$this->l10nFactory->method('get')->willReturn($l10n);
 
 		$this->controller = new WebhookController(
 			'signotecsignosignuniversal',
@@ -36,6 +44,7 @@ class WebhookControllerTest extends TestCase {
 			$this->webhookProcessingService,
 			$this->pendingWebhookService,
 			$this->logger,
+			$this->l10nFactory,
 		);
 	}
 
@@ -536,6 +545,177 @@ class WebhookControllerTest extends TestCase {
 		self::assertSame(Http::STATUS_OK, $response->getStatus());
 		self::assertSame([
 			'message' => 'File updated successfully',
+			'documentId' => '123',
+			'fileId' => 42,
+			'userId' => 'john',
+		], $response->getData());
+	}
+
+	// -----------------------------------------------------------------------
+	// SharedClosedWebhook
+	// -----------------------------------------------------------------------
+
+	private function buildSharedClosedParams(
+		string $eventType = 'DOCUMENT_SHARED_CLOSED',
+		string $documentId = '123',
+		string $state = 'REJECTED',
+		string $sharingCaseId = '555',
+	): array {
+		return [
+			'Event' => [
+				'EventType' => $eventType,
+				'EventData' => [
+					'Document' => ['DocumentId' => $documentId],
+					'SharingCase' => [
+						'SharinCaseId' => $sharingCaseId,
+						'State' => $state,
+					],
+				],
+			],
+		];
+	}
+
+	public function testSharedClosedWebhookReturnsBadRequestForInvalidEventType(): void {
+		$this->request->expects(self::once())
+			->method('getParams')
+			->willReturn($this->buildSharedClosedParams(eventType: 'DOCUMENT_UPDATED'));
+
+		$response = $this->controller->SharedClosedWebhook();
+
+		self::assertSame(Http::STATUS_BAD_REQUEST, $response->getStatus());
+		self::assertSame(['error' => 'Invalid event type'], $response->getData());
+	}
+
+	public function testSharedClosedWebhookReturnsOkSkippedWhenStateIsNotRejected(): void {
+		$this->request->expects(self::once())
+			->method('getParams')
+			->willReturn($this->buildSharedClosedParams(state: 'FINISHED'));
+
+		$response = $this->controller->SharedClosedWebhook();
+
+		self::assertSame(Http::STATUS_OK, $response->getStatus());
+		self::assertSame(['skipped' => true, 'state' => 'FINISHED'], $response->getData());
+	}
+
+	public function testSharedClosedWebhookReturnsBadRequestForMissingDocumentId(): void {
+		$this->request->expects(self::once())
+			->method('getParams')
+			->willReturn($this->buildSharedClosedParams(documentId: ''));
+
+		$response = $this->controller->SharedClosedWebhook();
+
+		self::assertSame(Http::STATUS_BAD_REQUEST, $response->getStatus());
+		self::assertSame(['error' => 'Missing document id'], $response->getData());
+	}
+
+	public function testSharedClosedWebhookReturnsBadRequestForMissingOrEmptySharingcaseId(): void {
+		$this->request->expects(self::once())
+			->method('getParams')
+			->willReturn($this->buildSharedClosedParams(sharingCaseId: ''));
+
+		$response = $this->controller->SharedClosedWebhook();
+
+		self::assertSame(Http::STATUS_BAD_REQUEST, $response->getStatus());
+		self::assertSame(['error' => 'Invalid sharing case id'], $response->getData());
+	}
+
+	public function testSharedClosedWebhookReturnsBadRequestWhenCommentCannotBeParsed(): void {
+		$this->request->expects(self::once())
+			->method('getParams')
+			->willReturn($this->buildSharedClosedParams());
+
+		$this->webhookProcessingService->expects(self::once())
+			->method('parseSharingcaseCommentAndReason')
+			->with('555')
+			->willReturn(['dto' => null, 'rejectedReason' => '']);
+
+		$response = $this->controller->SharedClosedWebhook();
+
+		self::assertSame(Http::STATUS_BAD_REQUEST, $response->getStatus());
+		self::assertSame(['error' => 'Could not parse sharing case comment'], $response->getData());
+	}
+
+	public function testSharedClosedWebhookReturnsForbiddenWhenValidationFails(): void {
+		$this->request->expects(self::once())
+			->method('getParams')
+			->willReturn($this->buildSharedClosedParams());
+
+		$this->webhookProcessingService->expects(self::once())
+			->method('parseSharingcaseCommentAndReason')
+			->with('555')
+			->willReturn(['dto' => new SharingcaseCommentDto('john', 42, 'nonce-1'), 'rejectedReason' => 'Bad signature']);
+
+		$this->pendingWebhookService->expects(self::once())
+			->method('validate')
+			->with(PendingWebhookService::WORKFLOW_SHARINGCASE, 'john', 42, 'nonce-1')
+			->willReturn(false);
+
+		$this->webhookProcessingService->expects(self::never())
+			->method('handleRejection');
+
+		$response = $this->controller->SharedClosedWebhook();
+
+		self::assertSame(Http::STATUS_FORBIDDEN, $response->getStatus());
+		self::assertSame(['error' => 'Webhook validation failed'], $response->getData());
+	}
+
+	public function testSharedClosedWebhookReturnsInternalServerErrorWhenRejectionFails(): void {
+		$this->request->expects(self::once())
+			->method('getParams')
+			->willReturn($this->buildSharedClosedParams());
+
+		$this->webhookProcessingService->expects(self::once())
+			->method('parseSharingcaseCommentAndReason')
+			->with('555')
+			->willReturn(['dto' => new SharingcaseCommentDto('john', 42, 'nonce-1', 'r@example.test'), 'rejectedReason' => 'Bad sig']);
+
+		$this->pendingWebhookService->expects(self::once())
+			->method('validate')
+			->willReturn(true);
+
+		$this->webhookProcessingService->expects(self::once())
+			->method('handleRejection')
+			->with('123', 42, 'john', 'Bad sig', 'r@example.test')
+			->willReturn(['error' => 'deletion failed', 'documentId' => '123', 'fileId' => 42, 'userId' => 'john']);
+
+		$this->pendingWebhookService->expects(self::never())
+			->method('markProcessed');
+
+		$response = $this->controller->SharedClosedWebhook();
+
+		self::assertSame(Http::STATUS_INTERNAL_SERVER_ERROR, $response->getStatus());
+		self::assertSame(['error' => 'deletion failed', 'documentId' => '123', 'fileId' => 42, 'userId' => 'john'], $response->getData());
+	}
+
+	public function testSharedClosedWebhookReturnsOkAndMarksProcessedOnSuccess(): void {
+		$this->request->expects(self::once())
+			->method('getParams')
+			->willReturn($this->buildSharedClosedParams());
+
+		$this->webhookProcessingService->expects(self::once())
+			->method('parseSharingcaseCommentAndReason')
+			->with('555')
+			->willReturn(['dto' => new SharingcaseCommentDto('john', 42, 'nonce-1', 'r@example.test'), 'rejectedReason' => 'Bad sig']);
+
+		$this->pendingWebhookService->expects(self::once())
+			->method('validate')
+			->with(PendingWebhookService::WORKFLOW_SHARINGCASE, 'john', 42, 'nonce-1')
+			->willReturn(true);
+
+		$this->webhookProcessingService->expects(self::once())
+			->method('handleRejection')
+			->with('123', 42, 'john', 'Bad sig', 'r@example.test')
+			->willReturn(['message' => 'Rejection handled successfully', 'documentId' => '123', 'fileId' => 42, 'userId' => 'john']);
+
+		$this->pendingWebhookService->expects(self::once())
+			->method('markProcessed')
+			->with(PendingWebhookService::WORKFLOW_SHARINGCASE, 'john', 42, 'nonce-1');
+
+		$response = $this->controller->SharedClosedWebhook();
+
+		self::assertSame(Http::STATUS_OK, $response->getStatus());
+		self::assertSame([
+			'message' => 'Rejection handled successfully',
 			'documentId' => '123',
 			'fileId' => 42,
 			'userId' => 'john',

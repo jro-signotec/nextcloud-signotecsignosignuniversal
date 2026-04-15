@@ -10,7 +10,7 @@ use OCP\SystemTag\ISystemTagObjectMapper;
 use OCP\SystemTag\TagCreationForbiddenException;
 use Psr\Log\LoggerInterface;
 
-final class FileTagService {
+class FileTagService {
 	private const LOG_PREFIX = '[FileTagService] ';
 	private const OBJECT_TYPE = 'files';
 
@@ -38,7 +38,7 @@ final class FileTagService {
 		}
 	}
 
-	public function assignTag(int $fileId, string $tagName): void {
+	public function assignTag(int $fileId, string $tagName, string $counterTagName = ''): void {
 		$tagName = trim($tagName);
 
 		if ($tagName === '') {
@@ -50,6 +50,27 @@ final class FileTagService {
 			$this->tagMapper->assignTags((string)$fileId, self::OBJECT_TYPE, [$tag->getId()]);
 		} catch (\Throwable $e) {
 			$this->logger->warning(self::LOG_PREFIX . 'failed to assign tag', [
+				'fileId' => $fileId,
+				'tagName' => $tagName,
+				'error' => $e->getMessage(),
+			]);
+		}
+
+		$this->removeTag($fileId, $counterTagName);
+	}
+
+	private function removeTag(int $fileId, string $tagName): void {
+		$tagName = trim($tagName);
+
+		if ($tagName === '') {
+			return;
+		}
+
+		try {
+			$tag = $this->resolveTag($tagName);
+			$this->tagMapper->unassignTags((string)$fileId, self::OBJECT_TYPE, [$tag->getId()]);
+		} catch (\Throwable $e) {
+			$this->logger->warning(self::LOG_PREFIX . 'failed to remove counter tag', [
 				'fileId' => $fileId,
 				'tagName' => $tagName,
 				'error' => $e->getMessage(),

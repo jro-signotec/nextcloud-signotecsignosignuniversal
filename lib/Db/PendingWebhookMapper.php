@@ -14,7 +14,7 @@ use OCP\IDBConnection;
 /**
  * @extends QBMapper<PendingWebhook>
  */
-final class PendingWebhookMapper extends QBMapper {
+class PendingWebhookMapper extends QBMapper {
 	public function __construct(IDBConnection $db) {
 		parent::__construct($db, 'stsu_pending_webhooks', PendingWebhook::class);
 	}

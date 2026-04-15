@@ -8,6 +8,7 @@ module.exports = {
 		extraFileExtensions: ['.vue'],
 	},
 	extends: ['@nextcloud'],
+	ignorePatterns: ['l10n/**'],
 	rules: {
 		'jsdoc/require-jsdoc': 'off',
 		'vue/first-attribute-linebreak': 'off',

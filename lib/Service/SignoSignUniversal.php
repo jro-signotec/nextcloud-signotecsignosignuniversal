@@ -9,7 +9,7 @@ use OCP\Http\Client\IClient;
 use OCP\Http\Client\IClientService;
 use Throwable;
 
-final class SignoSignUniversal {
+class SignoSignUniversal {
 	private const CONTENT_TYPE_FORM = 'application/x-www-form-urlencoded';
 	private const CONTENT_TYPE_PDF = 'application/pdf';
 
@@ -459,6 +459,51 @@ final class SignoSignUniversal {
 			}
 
 			return $result;
+		} catch (Throwable $e) {
+			return ['error' => $e->getMessage()];
+		}
+	}
+
+	/**
+	 * @return array<string, mixed>
+	 */
+	public function getUserSettings(string $token): array {
+		try {
+			$response = $this->getClient()->get($this->buildUrl('/user/settings'), [
+				'headers' => [
+					'Authorization' => $token,
+				],
+			]);
+
+			return $this->decodeJsonResponse(
+				(string)$response->getBody(),
+				'No response from user settings',
+			);
+		} catch (Throwable $e) {
+			return ['error' => $e->getMessage()];
+		}
+	}
+
+	/**
+	 * @param array<string, string> $settings
+	 * @return array<string, mixed>
+	 */
+	public function updateUserSettings(string $token, array $settings): array {
+		try {
+			$response = $this->getClient()->patch($this->buildUrl('/user/settings'), [
+				'headers' => [
+					'Authorization' => $token,
+					'Content-Type' => self::CONTENT_TYPE_FORM,
+				],
+				'form_params' => $settings,
+			]);
+
+			$body = (string)$response->getBody();
+			if ($body === '') {
+				return ['success' => true];
+			}
+
+			return $this->decodeJsonResponse($body, 'No response from update user settings');
 		} catch (Throwable $e) {
 			return ['error' => $e->getMessage()];
 		}

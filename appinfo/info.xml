@@ -69,14 +69,24 @@ Besuchen Sie unsere Website unter [www.signotec.com](https://www.signotec.com).]
 	<category>integration</category>
 	<category>office</category>
 	<bugs>https://github.com/jro-signotec/nextcloud-signotecsignosignuniversal/issues</bugs>
-	<screenshots>
-		<screenshot order="1">screenshots/Nextcloud_App_Store_SIGN.png</screenshot>
-		<screenshot order="2">screenshots/Nextcloud_App_Store_EDIT.png</screenshot>
-		<screenshot order="3">screenshots/Nextcloud_App_Store_SHARE.png</screenshot>
-		<screenshot order="4">screenshots/Nextcloud_App_Store_MOBILE.png</screenshot>
-		<screenshot order="5">screenshots/Nextcloud_App_Store_Context_Menu.png</screenshot>
-		<screenshot order="6">screenshots/Nextcloud_App_Store_Send_Form.png</screenshot>
-	</screenshots>
+	<screenshot small-thumbnail="https://raw.githubusercontent.com/jro-signotec/nextcloud-signotecsignosignuniversal/main/screenshots/Nextcloud_App_Store_SIGN.png">
+		https://raw.githubusercontent.com/jro-signotec/nextcloud-signotecsignosignuniversal/main/screenshots/Nextcloud_App_Store_SIGN.png
+	</screenshot>
+	<screenshot small-thumbnail="https://raw.githubusercontent.com/jro-signotec/nextcloud-signotecsignosignuniversal/main/screenshots/Nextcloud_App_Store_EDIT.png">
+		https://raw.githubusercontent.com/jro-signotec/nextcloud-signotecsignosignuniversal/main/screenshots/Nextcloud_App_Store_EDIT.png
+	</screenshot>
+	<screenshot small-thumbnail="https://raw.githubusercontent.com/jro-signotec/nextcloud-signotecsignosignuniversal/main/screenshots/Nextcloud_App_Store_SHARE.png">
+		https://raw.githubusercontent.com/jro-signotec/nextcloud-signotecsignosignuniversal/main/screenshots/Nextcloud_App_Store_SHARE.png
+	</screenshot>
+	<screenshot small-thumbnail="https://raw.githubusercontent.com/jro-signotec/nextcloud-signotecsignosignuniversal/main/screenshots/Nextcloud_App_Store_MOBILE.png">
+		https://raw.githubusercontent.com/jro-signotec/nextcloud-signotecsignosignuniversal/main/screenshots/Nextcloud_App_Store_MOBILE.png
+	</screenshot>
+	<screenshot small-thumbnail="https://raw.githubusercontent.com/jro-signotec/nextcloud-signotecsignosignuniversal/main/screenshots/Nextcloud_App_Store_Context_Menu.png">
+		https://raw.githubusercontent.com/jro-signotec/nextcloud-signotecsignosignuniversal/main/screenshots/Nextcloud_App_Store_Context_Menu.png
+	</screenshot>
+	<screenshot small-thumbnail="https://raw.githubusercontent.com/jro-signotec/nextcloud-signotecsignosignuniversal/main/screenshots/Nextcloud_App_Store_Send_Form.png">
+		https://raw.githubusercontent.com/jro-signotec/nextcloud-signotecsignosignuniversal/main/screenshots/Nextcloud_App_Store_Send_Form.png
+	</screenshot>
 	<dependencies>
 		<nextcloud min-version="32" max-version="32" />
 	</dependencies>
@@ -84,4 +94,5 @@ Besuchen Sie unsere Website unter [www.signotec.com](https://www.signotec.com).]
 		<admin>OCA\SignotecSignoSignUniversal\Settings\UniversalAdmin</admin>
 		<admin-section>OCA\SignotecSignoSignUniversal\Sections\UniversalAdmin</admin-section>
 	</settings>
+	<repository>https://github.com/jro-signotec/nextcloud-signotecsignosignuniversal.git</repository>
 </info>

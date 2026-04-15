@@ -325,6 +325,7 @@ final class ApiController extends OCSController {
 
 		$password = (string)$this->request->getParam('password', '');
 		$tanTarget = (string)$this->request->getParam('tanTarget', '');
+		$authType = (string)$this->request->getParam('authType', '');
 		$locale = (string)$this->request->getParam('locale', 'de');
 		$userId = $user->getUID();
 
@@ -400,6 +401,7 @@ final class ApiController extends OCSController {
 				$userId,
 				$fileId,
 				$pendingWebhook->getNonce(),
+				$recipientEmail,
 			);
 
 			$documentConfiguration = [
@@ -500,10 +502,11 @@ final class ApiController extends OCSController {
 				$fileId,
 				$userId,
 				$recipientEmail,
-				$this->settingsService->getCommentLanguageSend(),
+				$authType,
+				$this->settingsService->getCommentSend(),
 			);
 
-			$this->fileTagService->assignTag($fileId, $this->settingsService->getTagSend());
+			$this->fileTagService->assignTag($fileId, $this->settingsService->getTagSend(), $this->settingsService->getTagSigned());
 
 			return new DataResponse([
 				'fileId' => $fileId,

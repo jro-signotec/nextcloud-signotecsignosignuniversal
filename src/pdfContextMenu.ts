@@ -176,6 +176,7 @@ const signFileRemotely = async (node: FileActionNode): Promise<void> => {
 				recipientEmail: result.recipientEmail,
 				password: result.password ?? '',
 				tanTarget: result.tanTarget ?? '',
+				authType: result.authType?.label ?? '',
 			},
 			{
 				headers: {

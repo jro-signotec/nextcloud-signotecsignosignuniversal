@@ -9,6 +9,7 @@ final class SharingcaseCommentDto {
 		private string $userId,
 		private int $fileId,
 		private string $nonce,
+		private string $recipientEmail = '',
 	) {
 	}
 
@@ -17,6 +18,7 @@ final class SharingcaseCommentDto {
 			'userId' => $this->userId,
 			'fileId' => $this->fileId,
 			'nonce' => $this->nonce,
+			'recipientEmail' => $this->recipientEmail,
 		];
 	}
 
@@ -37,10 +39,15 @@ final class SharingcaseCommentDto {
 			return null;
 		}
 
+		$recipientEmail = isset($data['recipientEmail']) && is_string($data['recipientEmail'])
+			? trim($data['recipientEmail'])
+			: '';
+
 		return new self(
 			$userId,
 			(int)$data['fileId'],
 			$nonce,
+			$recipientEmail,
 		);
 	}
 
@@ -54,5 +61,9 @@ final class SharingcaseCommentDto {
 
 	public function getNonce(): string {
 		return $this->nonce;
+	}
+
+	public function getRecipientEmail(): string {
+		return $this->recipientEmail;
 	}
 }

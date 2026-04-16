@@ -15,6 +15,7 @@ use OCP\AppFramework\Http\Attribute\PublicPage;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\AppFramework\OCSController;
 use OCP\IRequest;
+use OCP\L10N\IFactory;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -22,6 +23,7 @@ use Psr\Log\LoggerInterface;
  */
 final class WebhookController extends OCSController {
 	private const LOG_PREFIX = '[WebhookController] ';
+	private const ERROR_WEBHOOK_VALIDATION_FAILED = 'Webhook validation failed';
 
 	public function __construct(
 		string $appName,
@@ -29,6 +31,7 @@ final class WebhookController extends OCSController {
 		private WebhookProcessingService $webhookProcessingService,
 		private PendingWebhookService $pendingWebhookService,
 		private LoggerInterface $logger,
+		private IFactory $l10nFactory,
 	) {
 		parent::__construct($appName, $request);
 	}
@@ -128,7 +131,7 @@ final class WebhookController extends OCSController {
 			]);
 
 			return new DataResponse([
-				'error' => 'Webhook validation failed',
+				'error' => self::ERROR_WEBHOOK_VALIDATION_FAILED,
 			], Http::STATUS_FORBIDDEN);
 		}
 
@@ -143,6 +146,8 @@ final class WebhookController extends OCSController {
 			$documentId,
 			$fileId,
 			$userId,
+			null,
+			$this->l10nFactory->get('signotecsignosignuniversal')->t('locally signed'),
 		);
 
 		if (isset($result['error'])) {
@@ -215,6 +220,7 @@ final class WebhookController extends OCSController {
 		$userId = $commentDto->getUserId();
 		$fileId = $commentDto->getFileId();
 		$nonce = $commentDto->getNonce();
+		$recipientEmail = $commentDto->getRecipientEmail();
 
 		$isValid = $this->pendingWebhookService->validate(
 			PendingWebhookService::WORKFLOW_SHARINGCASE,
@@ -232,7 +238,7 @@ final class WebhookController extends OCSController {
 			]);
 
 			return new DataResponse([
-				'error' => 'Webhook validation failed',
+				'error' => self::ERROR_WEBHOOK_VALIDATION_FAILED,
 			], Http::STATUS_FORBIDDEN);
 		}
 
@@ -241,6 +247,7 @@ final class WebhookController extends OCSController {
 			$fileId,
 			$userId,
 			null,
+			$recipientEmail,
 		);
 
 		if (isset($result['error'])) {
@@ -263,6 +270,159 @@ final class WebhookController extends OCSController {
 		);
 
 		$this->logger->info(self::LOG_PREFIX . 'sharing case webhook processed successfully', [
+			'documentId' => $documentId,
+			'sharingCaseId' => $sharingcaseId,
+			'userId' => $userId,
+			'fileId' => $fileId,
+		]);
+
+		return new DataResponse($result, Http::STATUS_OK);
+	}
+
+	/**
+	 * @psalm-return DataResponse<200|400, array{error?: string, skipped?: true, state?: string}, array<never, never>>|DataResponse<200|400|403|500, array{error: string}|array<string, mixed>, array<never, never>>
+	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	#[PublicPage]
+	#[ApiRoute(verb: 'POST', url: '/webhook_shared_closed')]
+	public function SharedClosedWebhook(): DataResponse {
+		$params = $this->request->getParams();
+		/** @var array<string, mixed> $params */
+		/** @var array<string, mixed> $event */
+		$event = is_array($params['Event'] ?? null) ? $params['Event'] : [];
+		/** @var array<string, mixed> $eventData */
+		$eventData = is_array($event['EventData'] ?? null) ? $event['EventData'] : [];
+		/** @var array<string, mixed> $document */
+		$document = is_array($eventData['Document'] ?? null) ? $eventData['Document'] : [];
+
+		$eventType = $event['EventType'] ?? null;
+		$documentId = $document['DocumentId'] ?? null;
+		/** @psalm-suppress MixedAssignment */
+		$sharingcase = $eventData['SharingCase'] ?? null;
+		$state = is_array($sharingcase) ? ($sharingcase['State'] ?? null) : null;
+
+		$this->logger->info(self::LOG_PREFIX . 'received shared closed webhook request', [
+			'eventType' => is_scalar($eventType) ? (string)$eventType : null,
+			'documentId' => is_scalar($documentId) ? (string)$documentId : null,
+			'state' => is_scalar($state) ? (string)$state : null,
+		]);
+
+		if ($eventType !== 'DOCUMENT_SHARED_CLOSED') {
+			$this->logger->warning(self::LOG_PREFIX . 'invalid event type on shared closed webhook', [
+				'eventType' => is_scalar($eventType) ? (string)$eventType : null,
+			]);
+
+			return new DataResponse([
+				'error' => 'Invalid event type',
+			], Http::STATUS_BAD_REQUEST);
+		}
+
+		if ($state !== 'REJECTED') {
+			$this->logger->info(self::LOG_PREFIX . 'Shared closed webhook skipped — state is not REJECTED', [
+				'state' => is_scalar($state) ? (string)$state : null,
+			]);
+
+			return new DataResponse([
+				'skipped' => true,
+				'state' => is_scalar($state) ? (string)$state : '',
+			], Http::STATUS_OK);
+		}
+
+		if (!is_scalar($documentId) || (string)$documentId === '') {
+			return new DataResponse([
+				'error' => 'Missing document id',
+			], Http::STATUS_BAD_REQUEST);
+		}
+
+		$sharingcaseId = is_array($sharingcase) ? ($sharingcase['SharinCaseId'] ?? null) : null;
+
+		if (!is_scalar($sharingcaseId) || (string)$sharingcaseId === '') {
+			return new DataResponse([
+				'error' => 'Invalid sharing case id',
+			], Http::STATUS_BAD_REQUEST);
+		}
+
+		return $this->handleSharingcaseRejectionWebhook((string)$documentId, (string)$sharingcaseId);
+	}
+
+	/**
+	 * @psalm-return DataResponse<400, array{error: string}, array<never, never>>|DataResponse<403, array{error: string}, array<never, never>>|DataResponse<200|500, array<string, mixed>, array<never, never>>
+	 */
+	private function handleSharingcaseRejectionWebhook(string $documentId, string $sharingcaseId): DataResponse {
+		$this->logger->info(self::LOG_PREFIX . 'processing rejection', [
+			'documentId' => $documentId,
+			'sharingCaseId' => $sharingcaseId,
+		]);
+
+		$parsed = $this->webhookProcessingService->parseSharingcaseCommentAndReason($sharingcaseId);
+		$commentDto = $parsed['dto'];
+		$rejectionReason = $parsed['rejectedReason'];
+
+		if ($commentDto === null) {
+			$this->logger->error(self::LOG_PREFIX . 'failed to parse sharing case comment for rejection', [
+				'documentId' => $documentId,
+				'sharingCaseId' => $sharingcaseId,
+			]);
+
+			return new DataResponse([
+				'error' => 'Could not parse sharing case comment',
+			], Http::STATUS_BAD_REQUEST);
+		}
+
+		$userId = $commentDto->getUserId();
+		$fileId = $commentDto->getFileId();
+		$nonce = $commentDto->getNonce();
+
+		$isValid = $this->pendingWebhookService->validate(
+			PendingWebhookService::WORKFLOW_SHARINGCASE,
+			$userId,
+			$fileId,
+			$nonce,
+		);
+
+		if (!$isValid) {
+			$this->logger->warning(self::LOG_PREFIX . 'rejection webhook validation failed', [
+				'documentId' => $documentId,
+				'sharingCaseId' => $sharingcaseId,
+				'userId' => $userId,
+				'fileId' => $fileId,
+			]);
+
+			return new DataResponse([
+				'error' => self::ERROR_WEBHOOK_VALIDATION_FAILED,
+			], Http::STATUS_FORBIDDEN);
+		}
+
+		$recipientEmail = $commentDto->getRecipientEmail();
+		$result = $this->webhookProcessingService->handleRejection(
+			$documentId,
+			$fileId,
+			$userId,
+			$rejectionReason,
+			$recipientEmail,
+		);
+
+		if (isset($result['error'])) {
+			$this->logger->error(self::LOG_PREFIX . 'rejection webhook processing failed', [
+				'documentId' => $documentId,
+				'sharingCaseId' => $sharingcaseId,
+				'userId' => $userId,
+				'fileId' => $fileId,
+				'error' => $result['error'],
+			]);
+
+			return new DataResponse($result, Http::STATUS_INTERNAL_SERVER_ERROR);
+		}
+
+		$this->pendingWebhookService->markProcessed(
+			PendingWebhookService::WORKFLOW_SHARINGCASE,
+			$userId,
+			$fileId,
+			$nonce,
+		);
+
+		$this->logger->info(self::LOG_PREFIX . 'rejection webhook processed successfully', [
 			'documentId' => $documentId,
 			'sharingCaseId' => $sharingcaseId,
 			'userId' => $userId,

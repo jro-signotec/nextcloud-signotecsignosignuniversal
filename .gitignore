@@ -8,10 +8,10 @@
 /tests/.phpunit.cache
 
 /node_modules/
-/js/
-/css/
+/js/*.map
 
 CLAUDE.md
 .claude/settings.local.json
 translationtool.phar
 /translationfiles
+/temp

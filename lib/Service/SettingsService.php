@@ -6,19 +6,27 @@ namespace OCA\SignotecSignoSignUniversal\Service;
 
 use OCA\SignotecSignoSignUniversal\Dto\SignatureFieldDto;
 use OCP\IAppConfig;
+use OCP\IL10N;
 
-final class SettingsService {
+class SettingsService {
 	private const SIGNATURE_FIELDS_KEY = 'signature_fields';
-	private const COMMENT_LANGUAGE_SEND_KEY = 'comment_language_send';
-	private const COMMENT_LANGUAGE_SIGNED_KEY = 'comment_language_signed';
-	private const VALID_COMMENT_LANGUAGES = ['none', 'de', 'en'];
+	private const COMMENT_SEND_KEY = 'comment_send';
+	private const COMMENT_SIGNED_KEY = 'comment_signed';
 	private const TAG_SEND_KEY = 'tag_send';
 	private const TAG_SIGNED_KEY = 'tag_signed';
+	private const CONNECTION_VALID_KEY = 'connection_valid';
+	private const SMS77_API_KEY_SET_KEY = 'sms77_api_key_set';
+	private const WEBHOOK_ENDPOINT_KEY = 'webhook_document_updated_endpoint';
+	private const WEBHOOK_SHARED_CLOSED_ENDPOINT_KEY = 'webhook_document_shared_closed_endpoint';
+	private const COMMENT_REJECTED_KEY = 'comment_rejected';
+	private const TAG_REJECTED_KEY = 'tag_rejected';
+	private const CONNECTION_ERROR_KEY = 'connection_error';
 
 	public function __construct(
 		private IAppConfig $config,
 		private string $appName,
 		private FileTagService $fileTagService,
+		private IL10N $l,
 	) {
 	}
 
@@ -34,12 +42,12 @@ final class SettingsService {
 		return $this->config->getValueString($this->appName, 'password', '');
 	}
 
-	public function getCommentLanguageSend(): string {
-		return $this->config->getValueString($this->appName, self::COMMENT_LANGUAGE_SEND_KEY, 'none');
+	public function getCommentSend(): string {
+		return $this->config->getValueString($this->appName, self::COMMENT_SEND_KEY, '');
 	}
 
-	public function getCommentLanguageSigned(): string {
-		return $this->config->getValueString($this->appName, self::COMMENT_LANGUAGE_SIGNED_KEY, 'none');
+	public function getCommentSigned(): string {
+		return $this->config->getValueString($this->appName, self::COMMENT_SIGNED_KEY, '');
 	}
 
 	public function getTagSend(): string {
@@ -48,6 +56,42 @@ final class SettingsService {
 
 	public function getTagSigned(): string {
 		return $this->config->getValueString($this->appName, self::TAG_SIGNED_KEY, '');
+	}
+
+	public function getConnectionValid(): bool {
+		return $this->config->getValueString($this->appName, self::CONNECTION_VALID_KEY, '0') === '1';
+	}
+
+	public function getSms77ApiKeySet(): bool {
+		return $this->config->getValueString($this->appName, self::SMS77_API_KEY_SET_KEY, '0') === '1';
+	}
+
+	public function getWebhookDocumentUpdatedEndpoint(): string {
+		return $this->config->getValueString($this->appName, self::WEBHOOK_ENDPOINT_KEY, '');
+	}
+
+	public function getWebhookDocumentSharedClosedEndpoint(): string {
+		return $this->config->getValueString($this->appName, self::WEBHOOK_SHARED_CLOSED_ENDPOINT_KEY, '');
+	}
+
+	public function getCommentRejected(): string {
+		return $this->config->getValueString($this->appName, self::COMMENT_REJECTED_KEY, '');
+	}
+
+	public function getTagRejected(): string {
+		return $this->config->getValueString($this->appName, self::TAG_REJECTED_KEY, '');
+	}
+
+	public function getConnectionError(): string {
+		return $this->config->getValueString($this->appName, self::CONNECTION_ERROR_KEY, '');
+	}
+
+	public function setConnectionData(bool $valid, bool $sms77KeySet, string $webhookEndpoint, string $webhookSharedClosedEndpoint = '', string $error = ''): void {
+		$this->config->setValueString($this->appName, self::CONNECTION_VALID_KEY, $valid ? '1' : '0');
+		$this->config->setValueString($this->appName, self::SMS77_API_KEY_SET_KEY, $sms77KeySet ? '1' : '0');
+		$this->config->setValueString($this->appName, self::WEBHOOK_ENDPOINT_KEY, $webhookEndpoint);
+		$this->config->setValueString($this->appName, self::WEBHOOK_SHARED_CLOSED_ENDPOINT_KEY, $webhookSharedClosedEndpoint);
+		$this->config->setValueString($this->appName, self::CONNECTION_ERROR_KEY, $error);
 	}
 
 	/**
@@ -77,16 +121,36 @@ final class SettingsService {
 		return $result;
 	}
 
+	public function deleteAllSettings(): void {
+		foreach ([
+			'url',
+			'username',
+			'password',
+			self::SIGNATURE_FIELDS_KEY,
+			self::COMMENT_SEND_KEY,
+			self::COMMENT_SIGNED_KEY,
+			self::COMMENT_REJECTED_KEY,
+			self::TAG_SEND_KEY,
+			self::TAG_SIGNED_KEY,
+			self::TAG_REJECTED_KEY,
+			self::CONNECTION_VALID_KEY,
+			self::SMS77_API_KEY_SET_KEY,
+			self::WEBHOOK_ENDPOINT_KEY,
+			self::WEBHOOK_SHARED_CLOSED_ENDPOINT_KEY,
+			self::CONNECTION_ERROR_KEY,
+		] as $key) {
+			$this->config->deleteKey($this->appName, $key);
+		}
+	}
+
 	/**
 	 * @param array<string, mixed> $input
 	 * @return array<string, mixed>|null
 	 */
 	public function setSettings(array $input): ?array {
-		$commentLanguageSend = isset($input['commentLanguageSend']) ? (string)$input['commentLanguageSend'] : null;
-		$commentLanguageSigned = isset($input['commentLanguageSigned']) ? (string)$input['commentLanguageSigned'] : null;
 		$signatureFields = $input['signatureFields'] ?? null;
 
-		$error = $this->validateSettingsInput($commentLanguageSend, $commentLanguageSigned, $signatureFields);
+		$error = $signatureFields !== null ? $this->validateSignatureFieldsInput($signatureFields) : null;
 		if ($error !== null) {
 			return ['error' => $error];
 		}
@@ -103,12 +167,16 @@ final class SettingsService {
 			$this->config->setValueString($this->appName, 'password', (string)$input['password']);
 		}
 
-		if ($commentLanguageSend !== null) {
-			$this->config->setValueString($this->appName, self::COMMENT_LANGUAGE_SEND_KEY, $commentLanguageSend);
+		if (isset($input['commentSend'])) {
+			$this->config->setValueString($this->appName, self::COMMENT_SEND_KEY, (string)$input['commentSend']);
 		}
 
-		if ($commentLanguageSigned !== null) {
-			$this->config->setValueString($this->appName, self::COMMENT_LANGUAGE_SIGNED_KEY, $commentLanguageSigned);
+		if (isset($input['commentSigned'])) {
+			$this->config->setValueString($this->appName, self::COMMENT_SIGNED_KEY, (string)$input['commentSigned']);
+		}
+
+		if (isset($input['commentRejected'])) {
+			$this->config->setValueString($this->appName, self::COMMENT_REJECTED_KEY, (string)$input['commentRejected']);
 		}
 
 		if (isset($input['tagSend'])) {
@@ -123,6 +191,12 @@ final class SettingsService {
 			$this->fileTagService->ensureTagExists($tagSigned);
 		}
 
+		if (isset($input['tagRejected'])) {
+			$tagRejected = trim((string)$input['tagRejected']);
+			$this->config->setValueString($this->appName, self::TAG_REJECTED_KEY, $tagRejected);
+			$this->fileTagService->ensureTagExists($tagRejected);
+		}
+
 		if ($signatureFields !== null) {
 			$normalized = $this->normalizeSignatureFields($signatureFields);
 			$this->config->setValueString(
@@ -130,29 +204,6 @@ final class SettingsService {
 				self::SIGNATURE_FIELDS_KEY,
 				json_encode($normalized, JSON_THROW_ON_ERROR)
 			);
-		}
-
-		return null;
-	}
-
-	private function validateSettingsInput(
-		?string $commentLanguageSend,
-		?string $commentLanguageSigned,
-		mixed $signatureFields,
-	): ?string {
-		$languageError = $this->validateCommentLanguages($commentLanguageSend, $commentLanguageSigned);
-		if ($languageError !== null) {
-			return $languageError;
-		}
-
-		return $signatureFields !== null ? $this->validateSignatureFieldsInput($signatureFields) : null;
-	}
-
-	private function validateCommentLanguages(?string $send, ?string $signed): ?string {
-		foreach (['commentLanguageSend' => $send, 'commentLanguageSigned' => $signed] as $field => $value) {
-			if ($value !== null && !in_array($value, self::VALID_COMMENT_LANGUAGES, true)) {
-				return 'Invalid ' . $field . ' value';
-			}
 		}
 
 		return null;
@@ -166,20 +217,27 @@ final class SettingsService {
 			'url' => $this->getUrl(),
 			'username' => $this->getUsername(),
 			'hasPassword' => $this->getPassword() !== '',
+			'connectionValid' => $this->getConnectionValid(),
+			'connectionError' => $this->getConnectionError(),
+			'sms77ApiKeySet' => $this->getSms77ApiKeySet(),
+			'webhookDocumentUpdatedEndpoint' => $this->getWebhookDocumentUpdatedEndpoint(),
+			'webhookDocumentSharedClosedEndpoint' => $this->getWebhookDocumentSharedClosedEndpoint(),
 			'signatureFields' => array_map(
 				static fn (SignatureFieldDto $field): array => $field->toArray(),
 				$this->getSignatureFields()
 			),
-			'commentLanguageSend' => $this->getCommentLanguageSend(),
-			'commentLanguageSigned' => $this->getCommentLanguageSigned(),
+			'commentSend' => $this->getCommentSend(),
+			'commentSigned' => $this->getCommentSigned(),
+			'commentRejected' => $this->getCommentRejected(),
 			'tagSend' => $this->getTagSend(),
 			'tagSigned' => $this->getTagSigned(),
+			'tagRejected' => $this->getTagRejected(),
 		];
 	}
 
 	private function validateSignatureFieldsInput(mixed $signatureFields): ?string {
 		if (!is_array($signatureFields)) {
-			return 'signatureFields must be an array';
+			return $this->l->t('signatureFields must be an array');
 		}
 
 		$ids = [];
@@ -187,7 +245,7 @@ final class SettingsService {
 
 		foreach ($signatureFields as $index => $entry) {
 			if (!is_array($entry)) {
-				return sprintf('signatureFields[%d] must be an object', $index);
+				return $this->l->t('signatureFields[%d] must be an object', [$index]);
 			}
 
 			$error = $this->validateSignatureFieldEntry($index, $entry, $ids, $signerNames);
@@ -203,6 +261,7 @@ final class SettingsService {
 	 * @param array<string, mixed> $entry
 	 * @param list<string> $ids
 	 * @param list<string> $signerNames
+	 * @param list<string> $searchTexts
 	 */
 	private function validateSignatureFieldEntry(int $index, array $entry, array &$ids, array &$signerNames): ?string {
 		$id = trim((string)($entry['id'] ?? ''));
@@ -210,51 +269,53 @@ final class SettingsService {
 		$searchText = trim((string)($entry['searchText'] ?? ''));
 
 		if ($id === '') {
-			return sprintf('signatureFields[%d].id must not be empty', $index);
+			return $this->l->t('signatureFields[%d].id must not be empty', [$index]);
 		}
 
 		if (in_array($id, $ids, true)) {
-			return sprintf('signatureFields[%d].id must be unique', $index);
+			return $this->l->t('signatureFields[%d].id must be unique', [$index]);
 		}
 
 		$ids[] = $id;
 
 		if ($signerName === '') {
-			return sprintf('signatureFields[%d].signerName must not be empty', $index);
+			return $this->l->t('signatureFields[%d].signerName must not be empty', [$index]);
 		}
 
 		if (in_array($signerName, $signerNames, true)) {
-			return sprintf('signatureFields[%d].signerName must be unique', $index);
+			return $this->l->t('signatureFields[%d].signerName must be unique', [$index]);
 		}
 
 		$signerNames[] = $signerName;
 
 		if ($searchText === '') {
-			return sprintf('signatureFields[%d].searchText must not be empty', $index);
+			return $this->l->t('signatureFields[%d].searchText must not be empty', [$index]);
 		}
 
+		$searchTexts[] = $searchText;
+
 		if (!array_key_exists('width', $entry) || (int)$entry['width'] <= 0) {
-			return sprintf('signatureFields[%d].width must be greater than 0', $index);
+			return $this->l->t('signatureFields[%d].width must be greater than 0', [$index]);
 		}
 
 		if (!array_key_exists('height', $entry) || (int)$entry['height'] <= 0) {
-			return sprintf('signatureFields[%d].height must be greater than 0', $index);
+			return $this->l->t('signatureFields[%d].height must be greater than 0', [$index]);
 		}
 
 		if (!array_key_exists('offsetX', $entry)) {
-			return sprintf('signatureFields[%d].offsetX is required', $index);
+			return $this->l->t('signatureFields[%d].offsetX is required', [$index]);
 		}
 
 		if (!array_key_exists('offsetY', $entry)) {
-			return sprintf('signatureFields[%d].offsetY is required', $index);
+			return $this->l->t('signatureFields[%d].offsetY is required', [$index]);
 		}
 
 		if (!array_key_exists('required', $entry)) {
-			return sprintf('signatureFields[%d].required is required', $index);
+			return $this->l->t('signatureFields[%d].required is required', [$index]);
 		}
 
 		if (!is_bool($entry['required']) && !in_array($entry['required'], [0, 1, '0', '1'], true)) {
-			return sprintf('signatureFields[%d].required must be boolean', $index);
+			return $this->l->t('signatureFields[%d].required must be boolean', [$index]);
 		}
 
 		return null;

@@ -22,7 +22,7 @@ final class UniversalAdmin implements IIconSection {
 
 	#[\Override]
 	public function getName() {
-		return $this->l->t('signoSignUniversal Settings');
+		return $this->l->t('signotec signoSign Settings');
 	}
 
 

@@ -13,7 +13,7 @@
 
 			<hr>
 
-			<NcSelect v-model="authType" :options="AuthType" :clearable="false" :input-label="authenticationLabel"
+			<NcSelect v-model="authType" :options="availableAuthTypes" :clearable="false" :input-label="authenticationLabel"
 				label="label" value-key="value" />
 
 			<div v-if="authType.value === 'password'" class="external-label">
@@ -52,11 +52,12 @@ import { NcButton, NcModal, NcSelect, NcTextField } from '@nextcloud/vue'
 
 const generateOcsUrl = (path: string) => `/ocs/v2.php${path}?format=json`
 const PREFS_URL = generateOcsUrl('/apps/signotecsignosignuniversal/userprefs')
+const SETTINGS_URL = generateOcsUrl('/apps/signotecsignosignuniversal/settings')
 
 type AuthMode = 'none' | 'password' | 'tan_sms' | 'tan_email'
 type AuthOption = { label: string; value: AuthMode }
 
-const AuthType: AuthOption[] = [
+const AllAuthTypes: AuthOption[] = [
 	{
 		label: t('signotecsignosignuniversal', 'No authentication'),
 		value: 'none',
@@ -101,14 +102,21 @@ export default {
 	data() {
 		return {
 			recipientEmail: '',
-			authType: AuthType[0] as AuthOption,
+			authType: AllAuthTypes[0] as AuthOption,
 			password: '',
 			tanTarget: '',
+			sms77ApiKeySet: false,
 		}
 	},
 	computed: {
+		availableAuthTypes(): AuthOption[] {
+			if (this.sms77ApiKeySet) {
+				return AllAuthTypes
+			}
+			return AllAuthTypes.filter(o => o.value !== 'tan_sms')
+		},
 		dialogTitle(): string {
-			return this.title || t('signotecsignosignuniversal', 'Send for signature')
+			return this.title || t('signotecsignosignuniversal', 'Request a remote signature')
 		},
 		authenticationLabel(): string {
 			return t('signotecsignosignuniversal', 'Authentication')
@@ -149,19 +157,28 @@ export default {
 			}
 			return false
 		},
-		AuthType(): AuthOption[] {
-			return AuthType
-		},
 	},
 	async mounted() {
 		try {
-			const res = await axios.get<{ ocs: { data: { authType: AuthMode } } }>(PREFS_URL)
-			const match = AuthType.find(o => o.value === res.data.ocs.data.authType)
-			if (match) {
-				this.authType = match
+			const [prefsRes, settingsRes] = await Promise.all([
+				axios.get<{ ocs: { data: { authType: AuthMode } } }>(PREFS_URL),
+				axios.get<{ ocs: { data: { sms77ApiKeySet: boolean } } }>(SETTINGS_URL),
+			])
+
+			this.sms77ApiKeySet = Boolean(settingsRes.data.ocs.data.sms77ApiKeySet)
+
+			const savedAuthMode = prefsRes.data.ocs.data.authType
+			// If saved pref is tan_sms but SMS is not available, fall back to default
+			if (savedAuthMode === 'tan_sms' && !this.sms77ApiKeySet) {
+				this.authType = AllAuthTypes[0]
+			} else {
+				const match = AllAuthTypes.find(o => o.value === savedAuthMode)
+				if (match) {
+					this.authType = match
+				}
 			}
 		} catch {
-			// keep default
+			// keep defaults
 		}
 		(this.$refs.recipientRef as { focus?: () => void } | undefined)?.focus?.()
 	},

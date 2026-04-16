@@ -10,7 +10,7 @@ use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Db\MultipleObjectsReturnedException;
 use Psr\Log\LoggerInterface;
 
-final class PendingWebhookService {
+class PendingWebhookService {
 	private const LOG_PREFIX = '[PendingWebhookService] ';
 
 	public const WORKFLOW_VIEWER = 'viewer';

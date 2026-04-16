@@ -108,7 +108,7 @@ const showRequestError = (error: unknown, fallbackLogLabel: string): void => {
 const openRemoteSigningDialog = async (): Promise<RemoteSigningDialogResult> => {
 	return await new Promise<RemoteSigningDialogResult>((resolve) => {
 		spawnDialog(SignoSignDialog, {
-			title: t('signotecsignosignuniversal', 'Send file for remote signing'),
+			title: t('signotecsignosignuniversal', 'Request remote signing'),
 			resolve,
 			reject: () => resolve(null),
 		})
@@ -176,6 +176,7 @@ const signFileRemotely = async (node: FileActionNode): Promise<void> => {
 				recipientEmail: result.recipientEmail,
 				password: result.password ?? '',
 				tanTarget: result.tanTarget ?? '',
+				authType: result.authType?.label ?? '',
 			},
 			{
 				headers: {
@@ -187,7 +188,7 @@ const signFileRemotely = async (node: FileActionNode): Promise<void> => {
 		)
 
 		showSuccess(
-			t('signotecsignosignuniversal', 'Remote signing request sent successfully')
+			t('signotecsignosignuniversal', 'Signing request sent successfully')
 			+ ': '
 			+ String(node.basename ?? ''),
 		)
@@ -217,7 +218,7 @@ registerFileAction(
 registerFileAction(
 	new FileAction({
 		id: 'sign_file_remote',
-		displayName: () => t('signotecsignosignuniversal', 'Send file for remote signing'),
+		displayName: () => t('signotecsignosignuniversal', 'Request remote signing'),
 		iconSvgInline: () => fileSignIcon,
 		mime: 'application/pdf',
 		enabled: (nodes) => isSinglePdfSelection(nodes as FileActionNode[]),

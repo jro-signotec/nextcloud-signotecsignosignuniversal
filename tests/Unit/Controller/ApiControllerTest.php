@@ -7,6 +7,8 @@ namespace OCA\SignotecSignoSignUniversal\Tests\Unit\Controller;
 use OCA\SignotecSignoSignUniversal\Controller\ApiController;
 use OCA\SignotecSignoSignUniversal\Db\PendingWebhook;
 use OCA\SignotecSignoSignUniversal\Dto\SignatureFieldDto;
+use OCA\SignotecSignoSignUniversal\Service\FileCommentService;
+use OCA\SignotecSignoSignUniversal\Service\FileTagService;
 use OCA\SignotecSignoSignUniversal\Service\PendingWebhookService;
 use OCA\SignotecSignoSignUniversal\Service\SettingsService;
 use OCA\SignotecSignoSignUniversal\Service\SignoSignUniversal;
@@ -29,6 +31,8 @@ class ApiControllerTest extends TestCase {
 	private PendingWebhookService&MockObject $pendingWebhookService;
 	private LoggerInterface&MockObject $logger;
 	private SettingsService&MockObject $settingsService;
+	private FileCommentService&MockObject $fileCommentService;
+	private FileTagService&MockObject $fileTagService;
 	private ApiController $controller;
 
 	protected function setUp(): void {
@@ -41,6 +45,8 @@ class ApiControllerTest extends TestCase {
 		$this->pendingWebhookService = $this->createMock(PendingWebhookService::class);
 		$this->logger = $this->createMock(LoggerInterface::class);
 		$this->settingsService = $this->createMock(SettingsService::class);
+		$this->fileCommentService = $this->createMock(FileCommentService::class);
+		$this->fileTagService = $this->createMock(FileTagService::class);
 
 		$this->controller = new ApiController(
 			'signotecsignosignuniversal',
@@ -51,6 +57,8 @@ class ApiControllerTest extends TestCase {
 			$this->pendingWebhookService,
 			$this->logger,
 			$this->settingsService,
+			$this->fileCommentService,
+			$this->fileTagService,
 		);
 	}
 
@@ -361,6 +369,7 @@ class ApiControllerTest extends TestCase {
 			recipientEmail: 'recipient@example.test',
 			password: 'secret',
 			tanTarget: '',
+			authType: '',
 			locale: 'de'
 		);
 
@@ -407,6 +416,7 @@ class ApiControllerTest extends TestCase {
 					'userId' => 'john',
 					'fileId' => 42,
 					'nonce' => 'nonce-123',
+					'recipientEmail' => 'recipient@example.test',
 				],
 				[
 					'signatureFields' => [],
@@ -439,6 +449,7 @@ class ApiControllerTest extends TestCase {
 			recipientEmail: 'recipient@example.test',
 			password: 'secret',
 			tanTarget: '49123456789',
+			authType: '',
 			locale: 'de'
 		);
 
@@ -513,6 +524,7 @@ class ApiControllerTest extends TestCase {
 					'userId' => 'john',
 					'fileId' => 42,
 					'nonce' => 'nonce-123',
+					'recipientEmail' => 'recipient@example.test',
 				],
 				$expectedDocumentConfiguration
 			)
@@ -568,9 +580,10 @@ class ApiControllerTest extends TestCase {
 		string $recipientEmail,
 		string $password,
 		string $tanTarget,
+		string $authType,
 		string $locale,
 	): void {
-		$this->request->expects(self::exactly(6))
+		$this->request->expects(self::exactly(7))
 			->method('getParam')
 			->willReturnMap([
 				['fileId', null, $fileId],
@@ -578,6 +591,7 @@ class ApiControllerTest extends TestCase {
 				['recipientEmail', '', $recipientEmail],
 				['password', '', $password],
 				['tanTarget', '', $tanTarget],
+				['authType', '', $authType],
 				['locale', 'de', $locale],
 			]);
 	}

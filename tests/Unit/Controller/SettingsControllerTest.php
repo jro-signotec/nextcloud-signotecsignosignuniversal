@@ -273,8 +273,8 @@ class SettingsControllerTest extends TestCase {
 
 		$this->l->expects(self::once())
 			->method('t')
-			->with('Webhook URL is already configured correctly')
-			->willReturn('Webhook URL is already configured correctly');
+			->with('Webhook URLs are already configured correctly')
+			->willReturn('Webhook URLs are already configured correctly');
 
 		$response = $this->controller->setWebhookUrl();
 
@@ -283,7 +283,7 @@ class SettingsControllerTest extends TestCase {
 			'alreadyConfigured' => true,
 			'webhookUrlSaved' => $docUrl,
 			'webhookUrlSharedClosed' => $closedUrl,
-			'message' => 'Webhook URL is already configured correctly',
+			'message' => 'Webhook URLs are already configured correctly',
 		], $response->getData());
 	}
 
@@ -328,8 +328,8 @@ class SettingsControllerTest extends TestCase {
 
 		$this->l->expects(self::once())
 			->method('t')
-			->with('Webhook URL updated successfully')
-			->willReturn('Webhook URL updated successfully');
+			->with('Webhook URLs updated successfully')
+			->willReturn('Webhook URLs updated successfully');
 
 		$response = $this->controller->setWebhookUrl();
 
@@ -337,7 +337,7 @@ class SettingsControllerTest extends TestCase {
 		self::assertSame([
 			'webhookUrlSaved' => $docUrl,
 			'webhookUrlSharedClosed' => $closedUrl,
-			'message' => 'Webhook URL updated successfully',
+			'message' => 'Webhook URLs updated successfully',
 		], $response->getData());
 	}
 

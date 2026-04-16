@@ -94,6 +94,7 @@ class WebhookProcessingServiceTest extends TestCase {
 		$this->settingsService->method('getCommentSigned')->willReturn('Signed by @userid@');
 		$this->settingsService->method('getTagSigned')->willReturn('signed');
 		$this->settingsService->method('getTagSend')->willReturn('in-progress');
+		$this->settingsService->method('getTagRejected')->willReturn('rejected');
 
 		$this->fileCommentService->expects(self::once())
 			->method('addSignedComment')
@@ -101,7 +102,7 @@ class WebhookProcessingServiceTest extends TestCase {
 
 		$this->fileTagService->expects(self::once())
 			->method('assignTag')
-			->with(42, 'signed', 'in-progress');
+			->with(42, 'signed', ['in-progress', 'rejected']);
 
 		$result = $this->service->downloadAndUpdateFile(
 			'123',
@@ -540,6 +541,7 @@ class WebhookProcessingServiceTest extends TestCase {
 		$this->settingsService->method('getCommentRejected')->willReturn('Rejected: @reason@');
 		$this->settingsService->method('getTagRejected')->willReturn('rejected');
 		$this->settingsService->method('getTagSend')->willReturn('in-progress');
+		$this->settingsService->method('getTagSigned')->willReturn('signed');
 
 		$this->fileCommentService->expects(self::once())
 			->method('addRejectedComment')
@@ -547,7 +549,7 @@ class WebhookProcessingServiceTest extends TestCase {
 
 		$this->fileTagService->expects(self::once())
 			->method('assignTag')
-			->with(42, 'rejected', 'in-progress');
+			->with(42, 'rejected', ['in-progress', 'signed']);
 
 		$result = $this->service->handleRejection('123', 42, 'john', 'Bad signature', 'signer@example.test');
 

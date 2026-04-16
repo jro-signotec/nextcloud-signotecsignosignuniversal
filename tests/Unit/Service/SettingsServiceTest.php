@@ -8,12 +8,14 @@ use OCA\SignotecSignoSignUniversal\Dto\SignatureFieldDto;
 use OCA\SignotecSignoSignUniversal\Service\FileTagService;
 use OCA\SignotecSignoSignUniversal\Service\SettingsService;
 use OCP\IAppConfig;
+use OCP\IL10N;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
 class SettingsServiceTest extends TestCase {
 	private IAppConfig&MockObject $config;
 	private FileTagService&MockObject $fileTagService;
+	private IL10N&MockObject $l;
 	private SettingsService $service;
 
 	protected function setUp(): void {
@@ -21,7 +23,11 @@ class SettingsServiceTest extends TestCase {
 
 		$this->config = $this->createMock(IAppConfig::class);
 		$this->fileTagService = $this->createMock(FileTagService::class);
-		$this->service = new SettingsService($this->config, 'signotecsignosignuniversal', $this->fileTagService);
+		$this->l = $this->createMock(IL10N::class);
+		$this->l->method('t')->willReturnCallback(static function (string $text, array $parameters = []): string {
+			return empty($parameters) ? $text : vsprintf($text, $parameters);
+		});
+		$this->service = new SettingsService($this->config, 'signotecsignosignuniversal', $this->fileTagService, $this->l);
 	}
 
 	public function testGetUrlReturnsConfiguredValue(): void {

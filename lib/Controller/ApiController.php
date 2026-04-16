@@ -506,7 +506,7 @@ final class ApiController extends OCSController {
 				$this->settingsService->getCommentSend(),
 			);
 
-			$this->fileTagService->assignTag($fileId, $this->settingsService->getTagSend(), $this->settingsService->getTagSigned());
+			$this->fileTagService->assignTag($fileId, $this->settingsService->getTagSend(), [$this->settingsService->getTagSigned(), $this->settingsService->getTagRejected()]);
 
 			return new DataResponse([
 				'fileId' => $fileId,

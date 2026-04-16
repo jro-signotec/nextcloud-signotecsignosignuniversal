@@ -4,7 +4,7 @@
 			{{
 				t(
 					'signotecsignosignuniversal',
-					'Settings for signotec signoSign'
+					'signotec signoSign Settings'
 				)
 			}}
 		</h2>
@@ -56,15 +56,6 @@
 							)
 						}}
 					</p>
-
-					<p v-else class="hint">
-						{{
-							t(
-								'signotecsignosignuniversal',
-								'Please set a password to use signature fields.'
-							)
-						}}
-					</p>
 				</div>
 
 				<div class="form-actions form-actions--inline">
@@ -80,14 +71,14 @@
 
 				<div v-else-if="settings.connectionError" class="connection-status connection-status--error">
 					<span class="connection-status__icon">✗</span>
-					{{ settings.connectionError }}
+					{{ friendlyConnectionError }}
 				</div>
 			</NcSettingsSection>
 
 			<!-- Section 2: signoSign settings -->
 			<NcSettingsSection
 				v-if="settings.connectionValid"
-				:name="t('signotecsignosignuniversal', 'signoSign settings')"
+				:name="t('signotecsignosignuniversal', 'signoSign/Universal settings')"
 				:description="t('signotecsignosignuniversal', 'Webhook and SMS configuration for signoSign/Universal.')">
 				<div class="webhook-header">
 					<div class="webhook-urls">
@@ -101,11 +92,11 @@
 								}}
 							</h4>
 							<p v-if="settings.webhookDocumentUpdatedEndpoint" class="hint">
-								{{ t('signotecsignosignuniversal', 'Current URL in signoSign/Universal:') }}
+								{{ t('signotecsignosignuniversal', 'Current URL:') }}
 								<code>{{ settings.webhookDocumentUpdatedEndpoint }}</code>
 							</p>
 							<p v-else class="hint">
-								{{ t('signotecsignosignuniversal', 'No webhook URL configured in signoSign/Universal yet.') }}
+								{{ t('signotecsignosignuniversal', 'Not set.') }}
 							</p>
 							<div :class="['status-row', settings.webhookDocumentUpdatedEndpoint === expectedWebhookUpdatedUrl ? 'status-row--ok' : 'status-row--off']">
 								<span class="status-row__icon">{{ settings.webhookDocumentUpdatedEndpoint === expectedWebhookUpdatedUrl ? '✓' : '✗' }}</span>
@@ -123,11 +114,11 @@
 								}}
 							</h4>
 							<p v-if="settings.webhookDocumentSharedClosedEndpoint" class="hint">
-								{{ t('signotecsignosignuniversal', 'Current URL in signoSign/Universal:') }}
+								{{ t('signotecsignosignuniversal', 'Current URL:') }}
 								<code>{{ settings.webhookDocumentSharedClosedEndpoint }}</code>
 							</p>
 							<p v-else class="hint">
-								{{ t('signotecsignosignuniversal', 'No webhook URL configured in signoSign/Universal yet.') }}
+								{{ t('signotecsignosignuniversal', 'Not set') }}
 							</p>
 							<div :class="['status-row', settings.webhookDocumentSharedClosedEndpoint === expectedWebhookSharedClosedUrl ? 'status-row--ok' : 'status-row--off']">
 								<span class="status-row__icon">{{ settings.webhookDocumentSharedClosedEndpoint === expectedWebhookSharedClosedUrl ? '✓' : '✗' }}</span>
@@ -261,7 +252,7 @@
 									<input :id="`field-signer-${index}`" v-model="field.signerName" type="text"
 										:placeholder="t(
 											'signotecsignosignuniversal',
-											'e.g. Max Mustermann'
+											'e.g. John Doe'
 										)
 											" required>
 								</td>
@@ -346,7 +337,7 @@
 						{{
 							t(
 								'signotecsignosignuniversal',
-								'Comment when sending for signing'
+								'Comment when sending a request for signing'
 							)
 						}}
 					</label>
@@ -367,9 +358,25 @@
 						}}
 					</label>
 					<input id="comment-signed" v-model="settings.commentSigned" type="text"
-						:placeholder="t('signotecsignosignuniversal', 'e.g. Signed by @userid@, sent to @mailto@')">
+						:placeholder="t('signotecsignosignuniversal', 'e.g. Signed by @mailto@, sent by @userid@')">
 					<p class="hint">
 						{{ t('signotecsignosignuniversal', 'Available placeholders: @userid@ (sender), @mailto@ (recipient email)') }}
+					</p>
+				</div>
+
+				<div class="form-group">
+					<label for="comment-rejected">
+						{{
+							t(
+								'signotecsignosignuniversal',
+								'Comment when rejected'
+							)
+						}}
+					</label>
+					<input id="comment-rejected" v-model="settings.commentRejected" type="text"
+						:placeholder="t('signotecsignosignuniversal', 'e.g. Rejected by @mailto@: @reason@')">
+					<p class="hint">
+						{{ t('signotecsignosignuniversal', 'Available placeholders: @reason@ (rejection reason), @mailto@ (recipient email)') }}
 					</p>
 				</div>
 
@@ -378,7 +385,7 @@
 						{{
 							t(
 								'signotecsignosignuniversal',
-								'Tag when sending for signing'
+								'Tag when sending a request for signing'
 							)
 						}}
 					</label>
@@ -397,22 +404,6 @@
 					</label>
 					<input id="tag-signed" v-model="settings.tagSigned" type="text"
 						:placeholder="t('signotecsignosignuniversal', 'e.g. signed')">
-				</div>
-
-				<div class="form-group">
-					<label for="comment-rejected">
-						{{
-							t(
-								'signotecsignosignuniversal',
-								'Comment when rejected'
-							)
-						}}
-					</label>
-					<input id="comment-rejected" v-model="settings.commentRejected" type="text"
-						:placeholder="t('signotecsignosignuniversal', 'e.g. Rejected by @userid@: @reason@')">
-					<p class="hint">
-						{{ t('signotecsignosignuniversal', 'Available placeholders: @reason@ (rejection reason), @userid@ (sender)') }}
-					</p>
 				</div>
 
 				<div class="form-group">
@@ -440,7 +431,7 @@
 		<NcSettingsSection
 			v-if="hasAnySettings"
 			:name="t('signotecsignosignuniversal', 'Reset settings')"
-			:description="t('signotecsignosignuniversal', 'Irreversible actions for this app.')">
+			:description="t('signotecsignosignuniversal', 'Irreversible action.')">
 			<NcButton variant="error" :disabled="isDeletingSettings" @click="deleteAllSettings">
 				{{ t('signotecsignosignuniversal', 'Delete all settings') }}
 			</NcButton>
@@ -508,6 +499,43 @@ const hasAnySettings = computed(() =>
 	|| settings.value.username !== ''
 	|| settings.value.hasPassword,
 )
+
+const friendlyConnectionError = computed(() => {
+	const err = settings.value.connectionError
+	if (!err) {
+		return ''
+	}
+
+	if (err.includes('401')) {
+		return t(
+			'signotecsignosignuniversal',
+			'Invalid credentials. Please check your signoSign app settings: Username and Password must be correct.',
+		)
+	}
+
+	if (err.includes('404')) {
+		return t(
+			'signotecsignosignuniversal',
+			'Invalid URL. Please check your signoSign app settings: URL must be correct.',
+		)
+	}
+
+	if (err.includes('Connection refused') || err.includes('Failed to connect') || err.includes('cURL error 7')) {
+		return t(
+			'signotecsignosignuniversal',
+			'Could not connect to the signoSign/Universal server. Please check if the URL is reachable.',
+		)
+	}
+
+	if (err.includes('SSL') || err.includes('certificate') || err.includes('cURL error 60')) {
+		return t(
+			'signotecsignosignuniversal',
+			'SSL certificate error. Please check the server certificate or contact your administrator.',
+		)
+	}
+
+	return err
+})
 
 const webhooksAlreadyCorrect = computed(() =>
 	settings.value.webhookDocumentUpdatedEndpoint !== ''
@@ -602,7 +630,7 @@ const setWebhookUrl = async () => {
 	const confirmed = window.confirm(
 		t(
 			'signotecsignosignuniversal',
-			'This will overwrite the webhook URL configured in signoSign/Universal. Are you sure?',
+			'This will overwrite the webhook URLs configured in signoSign/Universal. Are you sure?',
 		),
 	)
 	if (!confirmed) {
@@ -645,10 +673,10 @@ const setWebhookUrl = async () => {
 			settings.value.webhookDocumentSharedClosedEndpoint = responseData.webhookUrlSharedClosed
 		}
 	} catch (error) {
-		console.error('Failed to set webhook URL', error)
+		console.error('Failed to set Webhook URLs', error)
 		showError(
 			error.response?.data?.ocs?.data?.error
-			|| t('signotecsignosignuniversal', 'Failed to set Webhook URL'),
+			|| t('signotecsignosignuniversal', 'Failed to set Webhook URLs'),
 		)
 	} finally {
 		isSettingWebhook.value = false
@@ -794,11 +822,11 @@ onMounted(fetchSettings)
 }
 
 .connection-status--ok .connection-status__icon {
-	color: var(--color-success);
+	color: var(--color-main-text);
 }
 
 .connection-status--error {
-	color: var(--color-error);
+	color: var(--color-main-text);
 	background-color: var(--color-error-light, rgba(var(--color-error-rgb, 200, 0, 0), 0.45));
 }
 

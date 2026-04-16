@@ -116,7 +116,7 @@ export default {
 			return AllAuthTypes.filter(o => o.value !== 'tan_sms')
 		},
 		dialogTitle(): string {
-			return this.title || t('signotecsignosignuniversal', 'Send for signature')
+			return this.title || t('signotecsignosignuniversal', 'Request a remote signature')
 		},
 		authenticationLabel(): string {
 			return t('signotecsignosignuniversal', 'Authentication')

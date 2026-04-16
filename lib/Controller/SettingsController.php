@@ -136,7 +136,7 @@ final class SettingsController extends OCSController {
 					'alreadyConfigured' => true,
 					'webhookUrlSaved' => $targetUrlDocumentSaved,
 					'webhookUrlSharedClosed' => $targetUrlSharedClosed,
-					'message' => $this->l->t('Webhook URL is already configured correctly'),
+					'message' => $this->l->t('Webhook URLs are already configured correctly'),
 				]);
 			}
 
@@ -162,7 +162,7 @@ final class SettingsController extends OCSController {
 		return new DataResponse([
 			'webhookUrlSaved' => $targetUrlDocumentSaved,
 			'webhookUrlSharedClosed' => $targetUrlSharedClosed,
-			'message' => $this->l->t('Webhook URL updated successfully'),
+			'message' => $this->l->t('Webhook URLs updated successfully'),
 		]);
 	}
 

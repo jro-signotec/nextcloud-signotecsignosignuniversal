@@ -38,7 +38,10 @@ class FileTagService {
 		}
 	}
 
-	public function assignTag(int $fileId, string $tagName, string $counterTagName = ''): void {
+	/**
+	 * @param string[] $counterTagNames All tags to remove after assigning the new tag.
+	 */
+	public function assignTag(int $fileId, string $tagName, array $counterTagNames = []): void {
 		$tagName = trim($tagName);
 
 		if ($tagName === '') {
@@ -56,7 +59,9 @@ class FileTagService {
 			]);
 		}
 
-		$this->removeTag($fileId, $counterTagName);
+		foreach ($counterTagNames as $counterTagName) {
+			$this->removeTag($fileId, $counterTagName);
+		}
 	}
 
 	private function removeTag(int $fileId, string $tagName): void {

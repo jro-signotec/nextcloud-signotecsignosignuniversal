@@ -139,7 +139,7 @@ class WebhookProcessingService {
 			$this->settingsService->getCommentSigned(),
 		);
 
-		$this->fileTagService->assignTag((int)$fileId, $this->settingsService->getTagSigned(), $this->settingsService->getTagSend());
+		$this->fileTagService->assignTag((int)$fileId, $this->settingsService->getTagSigned(), [$this->settingsService->getTagSend(), $this->settingsService->getTagRejected()]);
 
 		$this->logger->info(self::LOG_PREFIX . 'file successfully updated', [
 			'documentId' => $documentId,
@@ -386,7 +386,7 @@ class WebhookProcessingService {
 			$this->settingsService->getCommentRejected(),
 		);
 
-		$this->fileTagService->assignTag($fileId, $this->settingsService->getTagRejected(), $this->settingsService->getTagSend());
+		$this->fileTagService->assignTag($fileId, $this->settingsService->getTagRejected(), [$this->settingsService->getTagSend(), $this->settingsService->getTagSigned()]);
 
 		$this->logger->info(self::LOG_PREFIX . 'rejection handled successfully', [
 			'documentId' => $documentId,

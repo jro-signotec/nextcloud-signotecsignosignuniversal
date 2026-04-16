@@ -10,8 +10,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - First release
-- Admin Settings for connection and signature fields
-- sign function to file actions
-- remote sign function to file actions
-- Webhook processing for signed files
-- Unit Tests
+- Admin settings for connection (URL, username, password) and signature field configuration
+- Connection test button with detailed error display
+- Automatic webhook URL configuration in signoSign/Universal
+- Comment templates for send, signed, and rejected events (with `@userid@`, `@mailto@`, `@reason@` placeholders)
+- Configurable file tags for send, signed, and rejected states (mutually exclusive, auto-cleanup on state transition)
+- User preference to choose between local and remote signing as default file action
+- "Sign file" file action for local signing workflow
+- "Send file for signing" file action for remote signing workflow (email recipient, auth type, password/TAN)
+- Webhook processing for signed and rejected files (downloads signed PDF, overwrites Nextcloud file)
+- Unit tests

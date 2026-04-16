@@ -242,14 +242,13 @@ class SettingsService {
 
 		$ids = [];
 		$signerNames = [];
-		$searchTexts = [];
 
 		foreach ($signatureFields as $index => $entry) {
 			if (!is_array($entry)) {
 				return $this->l->t('signatureFields[%d] must be an object', [$index]);
 			}
 
-			$error = $this->validateSignatureFieldEntry($index, $entry, $ids, $signerNames, $searchTexts);
+			$error = $this->validateSignatureFieldEntry($index, $entry, $ids, $signerNames);
 			if ($error !== null) {
 				return $error;
 			}
@@ -264,7 +263,7 @@ class SettingsService {
 	 * @param list<string> $signerNames
 	 * @param list<string> $searchTexts
 	 */
-	private function validateSignatureFieldEntry(int $index, array $entry, array &$ids, array &$signerNames, array &$searchTexts): ?string {
+	private function validateSignatureFieldEntry(int $index, array $entry, array &$ids, array &$signerNames): ?string {
 		$id = trim((string)($entry['id'] ?? ''));
 		$signerName = trim((string)($entry['signerName'] ?? ''));
 		$searchText = trim((string)($entry['searchText'] ?? ''));
@@ -291,10 +290,6 @@ class SettingsService {
 
 		if ($searchText === '') {
 			return $this->l->t('signatureFields[%d].searchText must not be empty', [$index]);
-		}
-
-		if (in_array($searchText, $searchTexts, true)) {
-			return $this->l->t('signatureFields[%d].searchText must be unique', [$index]);
 		}
 
 		$searchTexts[] = $searchText;

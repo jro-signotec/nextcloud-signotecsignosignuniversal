@@ -9,6 +9,7 @@ use Psr\Log\LoggerInterface;
 
 class FileCommentService {
 	private const LOG_PREFIX = '[FileCommentService] ';
+	private const COMMENT_PREFIX = '[signotec signoSign] ';
 	private const PLACEHOLDER_USERID = '@userid@';
 	private const PLACEHOLDER_MAILTO = '@mailto@';
 	private const PLACEHOLDER_AUTHTYPE = '@authtype@';
@@ -31,7 +32,7 @@ class FileCommentService {
 			return;
 		}
 
-		$message = str_replace(
+		$message = self::COMMENT_PREFIX . str_replace(
 			[self::PLACEHOLDER_MAILTO, self::PLACEHOLDER_AUTHTYPE, self::PLACEHOLDER_USERID],
 			[$recipientEmail, $authType, $userId],
 			$commentTemplate,
@@ -62,14 +63,14 @@ class FileCommentService {
 			return;
 		}
 
-		$message = str_replace(
+		$message = self::COMMENT_PREFIX . str_replace(
 			[self::PLACEHOLDER_REASON, self::PLACEHOLDER_USERID, self::PLACEHOLDER_MAILTO],
 			[$rejectionReason, $userId, $recipientEmail],
 			$commentTemplate,
 		);
 
 		try {
-			$comment = $this->commentsManager->create('bots', 'signotecsignosignuniversal', 'files', (string)$fileId);
+			$comment = $this->commentsManager->create('users', $userId, 'files', (string)$fileId);
 			$comment->setMessage($message);
 			$comment->setVerb('comment');
 			$this->commentsManager->save($comment);
@@ -92,14 +93,14 @@ class FileCommentService {
 			return;
 		}
 
-		$message = str_replace(
+		$message = self::COMMENT_PREFIX . str_replace(
 			[self::PLACEHOLDER_USERID, self::PLACEHOLDER_MAILTO],
 			[$userId, $recipientEmail],
 			$commentTemplate,
 		);
 
 		try {
-			$comment = $this->commentsManager->create('bots', 'signotecsignosignuniversal', 'files', (string)$fileId);
+			$comment = $this->commentsManager->create('users', $userId, 'files', (string)$fileId);
 			$comment->setMessage($message);
 			$comment->setVerb('comment');
 			$this->commentsManager->save($comment);

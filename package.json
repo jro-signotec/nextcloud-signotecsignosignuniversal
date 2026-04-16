@@ -9,7 +9,9 @@
     "dev": "vite --mode development build",
     "lint": "eslint src",
     "stylelint": "stylelint src/**/*.vue src/**/*.scss src/**/*.css",
-    "watch": "vite --mode development build --watch"
+    "watch": "vite --mode development build --watch",
+    "sign": "make sign",
+    "release": "make release"
   },
   "browserslist": [
     "extends @nextcloud/browserslist-config"

@@ -1,5 +1,5 @@
 {
     "require-dev": {
-        "psalm/phar": "^5.26"
+        "psalm/phar": "^6.16"
     }
 }

@@ -8,7 +8,7 @@ use OCA\SignotecSignoSignUniversal\Dto\SignatureFieldDto;
 use OCP\IAppConfig;
 use OCP\IL10N;
 
-class SettingsService {
+final class SettingsService {
 	private const SIGNATURE_FIELDS_KEY = 'signature_fields';
 	private const COMMENT_SEND_KEY = 'comment_send';
 	private const COMMENT_SIGNED_KEY = 'comment_signed';
@@ -261,7 +261,6 @@ class SettingsService {
 	 * @param array<string, mixed> $entry
 	 * @param list<string> $ids
 	 * @param list<string> $signerNames
-	 * @param list<string> $searchTexts
 	 */
 	private function validateSignatureFieldEntry(int $index, array $entry, array &$ids, array &$signerNames): ?string {
 		$id = trim((string)($entry['id'] ?? ''));
@@ -291,8 +290,6 @@ class SettingsService {
 		if ($searchText === '') {
 			return $this->l->t('signatureFields[%d].searchText must not be empty', [$index]);
 		}
-
-		$searchTexts[] = $searchText;
 
 		if (!array_key_exists('width', $entry) || (int)$entry['width'] <= 0) {
 			return $this->l->t('signatureFields[%d].width must be greater than 0', [$index]);

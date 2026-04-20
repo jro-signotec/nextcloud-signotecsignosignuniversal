@@ -1,10 +1,10 @@
 {
-	"extends": "@vue/tsconfig",
+	"extends": "@vue/tsconfig/tsconfig.dom.json",
 	"include": ["./src/**/*.ts", "./src/**/*.vue"],
 	"compilerOptions": {
 		"erasableSyntaxOnly": true,
 		"outDir": "js",
 		"rootDir": "src",
-		"lib": ["ES2015"]
+		"lib": ["ES2020", "DOM", "DOM.Iterable"]
 	}
 }

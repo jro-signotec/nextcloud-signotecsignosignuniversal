@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0] - 20.04.2026
+
+### Added
+
+- Support for Nextcloud 33 and 34
+
+### Changed
+
+- Updated `@nextcloud/files` to v4.0.0 — migrated file actions to the new context-based API (`ActionContext`, `INode`)
+
+### Removed
+
+- Support for Nextcloud 32
+
 ## [1.0.0] - 17.04.2026
 
 ### Added

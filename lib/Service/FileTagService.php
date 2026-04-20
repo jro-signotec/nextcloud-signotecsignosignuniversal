@@ -10,7 +10,7 @@ use OCP\SystemTag\ISystemTagObjectMapper;
 use OCP\SystemTag\TagCreationForbiddenException;
 use Psr\Log\LoggerInterface;
 
-class FileTagService {
+final class FileTagService {
 	private const LOG_PREFIX = '[FileTagService] ';
 	private const OBJECT_TYPE = 'files';
 

@@ -1,7 +1,8 @@
 import { t } from '@nextcloud/l10n'
 import axios from '@nextcloud/axios'
 import { showError, showSuccess } from '@nextcloud/dialogs'
-import { FileAction, registerFileAction } from '@nextcloud/files'
+import { registerFileAction } from '@nextcloud/files'
+import type { ActionContext, INode } from '@nextcloud/files'
 import { spawnDialog } from '@nextcloud/vue/functions/dialog'
 
 import SignoSignDialog from './components/SignoSignDialog.vue'
@@ -15,29 +16,16 @@ type RemoteSigningDialogResult = {
 	tanTarget: string
 } | null
 
-type FileActionNode = {
-	id?: string | number
-	fileid?: string | number
-	basename?: string
-	mime?: string
-}
-
 const generateOcsUrl = (path: string) => `/ocs/v2.php${path}?format=json`
 
-const isSinglePdfSelection = (nodes?: FileActionNode[]): boolean => {
-	if (nodes?.length !== 1) {
-		return false
-	}
-
-	return nodes[0]?.mime === 'application/pdf'
+const isSinglePdfSelection = (context: ActionContext): boolean => {
+	return context.nodes.length === 1 && context.nodes[0]?.mime === 'application/pdf'
 }
 
-const getNodeFileId = (node: FileActionNode): string | number | null => {
-	return node.id ?? node.fileid ?? null
-}
+const getNodeFileId = (node: INode): string | undefined => node.id
 
 const isAxiosError = (error: unknown): error is {
-	response?: { data?: unknown }
+	response?: { data?: { ocs?: { data?: { error?: string } } } }
 	message?: string
 	request?: unknown
 } => {
@@ -107,7 +95,8 @@ const showRequestError = (error: unknown, fallbackLogLabel: string): void => {
 
 const openRemoteSigningDialog = async (): Promise<RemoteSigningDialogResult> => {
 	return await new Promise<RemoteSigningDialogResult>((resolve) => {
-		spawnDialog(SignoSignDialog, {
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		spawnDialog(SignoSignDialog as any, {
 			title: t('signotecsignosignuniversal', 'Request remote signing'),
 			resolve,
 			reject: () => resolve(null),
@@ -115,15 +104,15 @@ const openRemoteSigningDialog = async (): Promise<RemoteSigningDialogResult> => 
 	})
 }
 
-const signFileLocally = async (node: FileActionNode): Promise<void> => {
+const signFileLocally = async (node: INode): Promise<boolean> => {
 	const fileId = getNodeFileId(node)
 	if (!fileId) {
 		showError(t('signotecsignosignuniversal', 'No file ID found'))
-		return
+		return false
 	}
 
 	try {
-		const res = await axios.post(
+		const res = await axios.post<{ ocs: { data: { viewerUrl?: { url: string } } } }>(
 			generateOcsUrl('/apps/signotecsignosignuniversal/uploadandsign'),
 			{
 				fileId,
@@ -148,23 +137,25 @@ const signFileLocally = async (node: FileActionNode): Promise<void> => {
 			+ ': '
 			+ String(node.basename ?? ''),
 		)
+		return true
 	} catch (error) {
 		console.error(error)
 		showRequestError(error, 'Failed to send file for local signing')
+		return false
 	}
 }
 
-const signFileRemotely = async (node: FileActionNode): Promise<void> => {
+const signFileRemotely = async (node: INode): Promise<boolean> => {
 	const fileId = getNodeFileId(node)
 	if (!fileId) {
 		showError(t('signotecsignosignuniversal', 'No file ID found'))
-		return
+		return false
 	}
 
 	const result = await openRemoteSigningDialog()
 	if (!result) {
 		console.info('User cancelled the remote signing flow')
-		return
+		return null as unknown as boolean
 	}
 
 	try {
@@ -192,43 +183,29 @@ const signFileRemotely = async (node: FileActionNode): Promise<void> => {
 			+ ': '
 			+ String(node.basename ?? ''),
 		)
+		return true
 	} catch (error) {
 		showRequestError(error, 'Failed to send file for remote signing')
+		return false
 	}
 }
 
-registerFileAction(
-	new FileAction({
-		id: 'sign_file_local',
-		displayName: () => t('signotecsignosignuniversal', 'Sign file'),
-		iconSvgInline: () => fileSignIcon,
-		mime: 'application/pdf',
-		enabled: (nodes) => isSinglePdfSelection(nodes as FileActionNode[]),
-		async exec(file) {
-			if (!file) {
-				showError(t('signotecsignosignuniversal', 'No file selected'))
-				return
-			}
+registerFileAction({
+	id: 'sign_file_local',
+	displayName: () => t('signotecsignosignuniversal', 'Sign file'),
+	iconSvgInline: () => fileSignIcon,
+	enabled: (context) => isSinglePdfSelection(context),
+	async exec(context) {
+		return await signFileLocally(context.nodes[0])
+	},
+})
 
-			await signFileLocally(file as FileActionNode)
-		},
-	}),
-)
-
-registerFileAction(
-	new FileAction({
-		id: 'sign_file_remote',
-		displayName: () => t('signotecsignosignuniversal', 'Request remote signing'),
-		iconSvgInline: () => fileSignIcon,
-		mime: 'application/pdf',
-		enabled: (nodes) => isSinglePdfSelection(nodes as FileActionNode[]),
-		async exec(file) {
-			if (!file) {
-				showError(t('signotecsignosignuniversal', 'No file selected'))
-				return
-			}
-
-			await signFileRemotely(file as FileActionNode)
-		},
-	}),
-)
+registerFileAction({
+	id: 'sign_file_remote',
+	displayName: () => t('signotecsignosignuniversal', 'Request remote signing'),
+	iconSvgInline: () => fileSignIcon,
+	enabled: (context) => isSinglePdfSelection(context),
+	async exec(context) {
+		return await signFileRemotely(context.nodes[0])
+	},
+})

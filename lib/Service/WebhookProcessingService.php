@@ -10,7 +10,7 @@ use OCP\Files\File;
 use OCP\Files\IRootFolder;
 use Psr\Log\LoggerInterface;
 
-class WebhookProcessingService {
+final class WebhookProcessingService {
 	private const LOG_PREFIX = '[WebhookProcessingService] ';
 
 	public function __construct(

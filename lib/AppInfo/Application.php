@@ -23,6 +23,9 @@ final class Application extends App implements IBootstrap {
 		Util::addStyle(self::APP_ID, self::APP_ID . '-pdfContextMenu');
 	}
 
+	// Imported by the OCP\AppFramework\Bootstrap\IBootstrap interface this method is called during the boot process of the application.
+	// It can be used to perform any necessary initialization or setup tasks when the application is being loaded.
+	// In this implementation, the method is currently empty, indicating that no specific boot actions are required for this application at this time.
 	#[\Override]
 	public function boot(IBootContext $context): void {
 	}

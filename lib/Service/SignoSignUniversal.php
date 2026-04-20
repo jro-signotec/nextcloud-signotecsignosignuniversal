@@ -9,7 +9,7 @@ use OCP\Http\Client\IClient;
 use OCP\Http\Client\IClientService;
 use Throwable;
 
-class SignoSignUniversal {
+final class SignoSignUniversal {
 	private const CONTENT_TYPE_FORM = 'application/x-www-form-urlencoded';
 	private const CONTENT_TYPE_PDF = 'application/pdf';
 

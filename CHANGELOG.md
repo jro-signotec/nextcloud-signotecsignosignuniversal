@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.1] - 20.04.2026
+
+### Changed
+
+- PHP codebase reformatted to spaces
+- Added `<php min-version="8.2" />` to app dependencies
+- Makefile refactored with variables and new `deploy` target
+- Updated psalm and dev tooling
+
 ## [1.0.0] - 17.04.2026
 
 ### Added

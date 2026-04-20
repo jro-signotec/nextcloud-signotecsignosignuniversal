@@ -7,7 +7,7 @@ namespace OCA\SignotecSignoSignUniversal\Service;
 use OCP\Comments\ICommentsManager;
 use Psr\Log\LoggerInterface;
 
-class FileCommentService {
+final class FileCommentService {
 	private const LOG_PREFIX = '[FileCommentService] ';
 	private const COMMENT_PREFIX = '[signotec signoSign] ';
 	private const PLACEHOLDER_USERID = '@userid@';

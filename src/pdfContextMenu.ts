@@ -11,9 +11,13 @@ import fileSignIcon from '../img/file-sign.svg?raw'
 
 type RemoteSigningDialogResult = {
 	recipientEmail: string
+	notificationLanguage: string
 	authType: { label: string; value: string }
 	password: string
 	tanTarget: string
+	mailSubject: string
+	mailMessage: string
+	mailSignatureText: string
 } | null
 
 const generateOcsUrl = (path: string) => `/ocs/v2.php${path}?format=json`
@@ -165,9 +169,13 @@ const signFileRemotely = async (node: INode): Promise<boolean> => {
 				fileId,
 				fileName: node.basename,
 				recipientEmail: result.recipientEmail,
+				locale: result.notificationLanguage,
 				password: result.password ?? '',
 				tanTarget: result.tanTarget ?? '',
 				authType: result.authType?.label ?? '',
+				mailSubject: result.mailSubject ?? '',
+				mailMessage: result.mailMessage ?? '',
+				mailSignatureText: result.mailSignatureText ?? '',
 			},
 			{
 				headers: {

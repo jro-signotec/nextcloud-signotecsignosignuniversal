@@ -327,6 +327,9 @@ final class ApiController extends OCSController {
 		$tanTarget = (string)$this->request->getParam('tanTarget', '');
 		$authType = (string)$this->request->getParam('authType', '');
 		$locale = (string)$this->request->getParam('locale', 'de');
+		$mailSubject = (string)$this->request->getParam('mailSubject', '');
+		$mailMessage = (string)$this->request->getParam('mailMessage', '');
+		$mailSignatureText = (string)$this->request->getParam('mailSignatureText', '');
 		$userId = $user->getUID();
 
 		$this->logger->info(self::LOG_PREFIX . 'starting sharing case', [
@@ -404,11 +407,25 @@ final class ApiController extends OCSController {
 				$recipientEmail,
 			);
 
+			$mailSubjectTrimmed = trim($mailSubject);
+			$mailMessageTrimmed = trim($mailMessage);
+			$mailSignatureTextTrimmed = trim($mailSignatureText);
+
+			$sharingCaseProperties = [];
+			if ($mailSubjectTrimmed !== '' || $mailMessageTrimmed !== '' || $mailSignatureTextTrimmed !== '') {
+				$sharingCaseProperties = array_filter([
+					'mailSubject' => $mailSubjectTrimmed !== '' ? $mailSubjectTrimmed : null,
+					'mailMessage' => $mailMessageTrimmed !== '' ? nl2br($mailMessageTrimmed) : null,
+					'mailSignatureText' => $mailSignatureTextTrimmed !== '' ? nl2br($mailSignatureTextTrimmed) : null,
+				], static fn (mixed $v): bool => $v !== null);
+			}
+
 			$documentConfiguration = [
 				'signatureFields' => array_map(
 					static fn (SignatureFieldDto $field): array => $field->toSharingcasePayload(),
 					$this->settingsService->getSignatureFields()
 				),
+				...($sharingCaseProperties !== [] ? ['sharingCaseProperties' => $sharingCaseProperties] : []),
 			];
 
 			$sharingcaseResult = $this->signoSignUniversal->createSharingcase(

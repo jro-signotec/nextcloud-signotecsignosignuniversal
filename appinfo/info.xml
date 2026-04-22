@@ -62,7 +62,7 @@ Seit über **25 Jahren** ist **signotec** weltweit führender Anbieter von hands
 Lassen Sie Dokumente schneller signieren – direkt dort, wo Ihre Arbeit stattfindet.
 
 Besuchen Sie unsere Website unter [www.signotec.com](https://www.signotec.com).]]></description>
-	<version>2.0.0</version>
+	<version>2.1.0</version>
 	<licence>AGPL-3.0-or-later</licence>
 	<author mail="integrations@signotec.de" homepage="https://www.signotec.com/">signotec GmbH</author>
 	<namespace>SignotecSignoSignUniversal</namespace>

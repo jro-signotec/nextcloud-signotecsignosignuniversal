@@ -11,6 +11,9 @@
 					type="email" required />
 			</div>
 
+			<NcSelect v-model="notificationLanguage" :options="availableLanguages" :clearable="false"
+				:input-label="notificationLanguageLabel" label="label" value-key="value" />
+
 			<hr>
 
 			<NcSelect v-model="authType" :options="availableAuthTypes" :clearable="false" :input-label="authenticationLabel"
@@ -33,6 +36,26 @@
 
 			<hr>
 
+			<details class="email-options">
+				<summary>{{ emailOptionsLabel }}</summary>
+				<div class="email-options__fields">
+					<div class="external-label">
+						<label for="mailSubjectField">{{ mailSubjectLabel }}</label>
+						<NcTextField id="mailSubjectField" v-model="mailSubject" :label-outside="true" />
+					</div>
+					<div class="external-label">
+						<label for="mailMessageField">{{ mailMessageLabel }}</label>
+						<NcTextArea id="mailMessageField" v-model="mailMessage" :label-outside="true" :rows="5" />
+					</div>
+					<div class="external-label">
+						<label for="mailSignatureTextField">{{ mailSignatureTextLabel }}</label>
+						<NcTextArea id="mailSignatureTextField" v-model="mailSignatureText" :label-outside="true" :rows="3" />
+					</div>
+				</div>
+			</details>
+
+			<hr>
+
 			<div class="confirm-modal__buttons">
 				<NcButton variant="tertiary" @click="onReject">
 					{{ cancelLabel }}
@@ -47,8 +70,8 @@
 
 <script lang="ts">
 import axios from '@nextcloud/axios'
-import { t } from '@nextcloud/l10n'
-import { NcButton, NcModal, NcSelect, NcTextField } from '@nextcloud/vue'
+import { t, getLanguage } from '@nextcloud/l10n'
+import { NcButton, NcModal, NcSelect, NcTextArea, NcTextField } from '@nextcloud/vue'
 
 const generateOcsUrl = (path: string) => `/ocs/v2.php${path}?format=json`
 const PREFS_URL = generateOcsUrl('/apps/signotecsignosignuniversal/userprefs')
@@ -57,24 +80,8 @@ const SETTINGS_URL = generateOcsUrl('/apps/signotecsignosignuniversal/settings')
 type AuthMode = 'none' | 'password' | 'tan_sms' | 'tan_email'
 type AuthOption = { label: string; value: AuthMode }
 
-const AllAuthTypes: AuthOption[] = [
-	{
-		label: t('signotecsignosignuniversal', 'No authentication'),
-		value: 'none',
-	},
-	{
-		label: t('signotecsignosignuniversal', 'Password'),
-		value: 'password',
-	},
-	{
-		label: t('signotecsignosignuniversal', 'TAN via SMS'),
-		value: 'tan_sms',
-	},
-	{
-		label: t('signotecsignosignuniversal', 'TAN via email'),
-		value: 'tan_email',
-	},
-]
+type LangCode = 'de' | 'en' | 'fr'
+type LangOption = { label: string; value: LangCode }
 
 export default {
 	name: 'SignoSignDialog',
@@ -82,6 +89,7 @@ export default {
 		NcModal,
 		NcButton,
 		NcTextField,
+		NcTextArea,
 		NcSelect,
 	},
 	props: {
@@ -100,23 +108,67 @@ export default {
 	},
 	emits: ['resolve', 'reject', 'close'],
 	data() {
+		const userLang = getLanguage().split('-')[0] as LangCode
 		return {
 			recipientEmail: '',
-			authType: AllAuthTypes[0] as AuthOption,
+			notificationLanguageCode: (['de', 'en', 'fr'].includes(userLang) ? userLang : 'en') as LangCode,
+			authTypeValue: 'none' as AuthMode,
 			password: '',
 			tanTarget: '',
+			mailSubject: '',
+			mailMessage: '',
+			mailSignatureText: '',
 			sms77ApiKeySet: false,
 		}
 	},
 	computed: {
+		allLanguages(): LangOption[] {
+			return [
+				{ label: t('signotecsignosignuniversal', 'German'), value: 'de' as LangCode },
+				{ label: t('signotecsignosignuniversal', 'English'), value: 'en' as LangCode },
+				{ label: t('signotecsignosignuniversal', 'French'), value: 'fr' as LangCode },
+			]
+		},
+		allAuthTypes(): AuthOption[] {
+			return [
+				{ label: t('signotecsignosignuniversal', 'No authentication'), value: 'none' as AuthMode },
+				{ label: t('signotecsignosignuniversal', 'Password'), value: 'password' as AuthMode },
+				{ label: t('signotecsignosignuniversal', 'TAN via SMS'), value: 'tan_sms' as AuthMode },
+				{ label: t('signotecsignosignuniversal', 'TAN via email'), value: 'tan_email' as AuthMode },
+			]
+		},
+		notificationLanguage: {
+			get(): LangOption {
+				return this.allLanguages.find((l: LangOption) => l.value === this.notificationLanguageCode)
+					?? this.allLanguages.find((l: LangOption) => l.value === 'en')!
+			},
+			set(option: LangOption) {
+				this.notificationLanguageCode = option.value
+			},
+		},
+		authType: {
+			get(): AuthOption {
+				return this.allAuthTypes.find((o: AuthOption) => o.value === this.authTypeValue)
+					?? this.allAuthTypes[0]!
+			},
+			set(option: AuthOption) {
+				this.authTypeValue = option.value
+			},
+		},
+		availableLanguages(): LangOption[] {
+			return this.allLanguages
+		},
 		availableAuthTypes(): AuthOption[] {
 			if (this.sms77ApiKeySet) {
-				return AllAuthTypes
+				return this.allAuthTypes
 			}
-			return AllAuthTypes.filter(o => o.value !== 'tan_sms')
+			return this.allAuthTypes.filter((o: AuthOption) => o.value !== 'tan_sms')
 		},
 		dialogTitle(): string {
 			return this.title || t('signotecsignosignuniversal', 'Request a remote signature')
+		},
+		notificationLanguageLabel(): string {
+			return t('signotecsignosignuniversal', 'Notification language')
 		},
 		authenticationLabel(): string {
 			return t('signotecsignosignuniversal', 'Authentication')
@@ -138,6 +190,18 @@ export default {
 		},
 		tanEmailLabel(): string {
 			return t('signotecsignosignuniversal', 'TAN email')
+		},
+		emailOptionsLabel(): string {
+			return t('signotecsignosignuniversal', 'Email options (optional)')
+		},
+		mailSubjectLabel(): string {
+			return t('signotecsignosignuniversal', 'Subject')
+		},
+		mailMessageLabel(): string {
+			return t('signotecsignosignuniversal', 'MailText')
+		},
+		mailSignatureTextLabel(): string {
+			return t('signotecsignosignuniversal', 'MailSignature')
 		},
 		isValidEmail(): boolean {
 			return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.recipientEmail.trim())
@@ -170,12 +234,9 @@ export default {
 			const savedAuthMode = prefsRes.data.ocs.data.authType
 			// If saved pref is tan_sms but SMS is not available, fall back to default
 			if (savedAuthMode === 'tan_sms' && !this.sms77ApiKeySet) {
-				this.authType = AllAuthTypes[0]
-			} else {
-				const match = AllAuthTypes.find(o => o.value === savedAuthMode)
-				if (match) {
-					this.authType = match
-				}
+				this.authTypeValue = 'none'
+			} else if ((['none', 'password', 'tan_sms', 'tan_email'] as AuthMode[]).includes(savedAuthMode)) {
+				this.authTypeValue = savedAuthMode
 			}
 		} catch {
 			// keep defaults
@@ -194,9 +255,13 @@ export default {
 
 			const data = {
 				recipientEmail: this.recipientEmail.trim(),
+				notificationLanguage: this.notificationLanguage.value,
 				authType: this.authType,
 				password: this.password.trim(),
 				tanTarget: this.tanTarget.trim(),
+				mailSubject: this.mailSubject.trim(),
+				mailMessage: this.mailMessage.trim(),
+				mailSignatureText: this.mailSignatureText.trim(),
 			}
 
 			this.resolve(data)
@@ -205,3 +270,23 @@ export default {
 	},
 }
 </script>
+
+<style scoped>
+.email-options {
+	margin-block: 8px;
+}
+
+.email-options > summary {
+	cursor: pointer;
+	user-select: none;
+	color: var(--color-text-maxcontrast);
+	font-size: 0.9em;
+}
+
+.email-options__fields {
+	margin-top: 8px;
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+</style>

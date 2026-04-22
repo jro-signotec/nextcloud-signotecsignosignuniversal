@@ -80,6 +80,10 @@
 				v-if="settings.connectionValid"
 				:name="t('signotecsignosignuniversal', 'signoSign/Universal settings')"
 				:description="t('signotecsignosignuniversal', 'Webhook and SMS configuration for signoSign/Universal.')">
+				<p class="hint webhook-reachability-hint">
+					⚠ {{ t('signotecsignosignuniversal', 'The Nextcloud server must be reachable from the signoSign/Universal server for webhooks to work.') }}
+				</p>
+
 				<div class="webhook-header">
 					<div class="webhook-urls">
 						<div>
@@ -585,7 +589,7 @@ const normalizeSignatureFields = (fields) => {
 }
 
 const normalizeSettingsResponse = (data) => ({
-	url: data?.url ?? '',
+	url: data?.url || 'https://universal.signosign.com/',
 	username: data?.username ?? '',
 	password: '',
 	hasPassword: Boolean(data?.hasPassword),

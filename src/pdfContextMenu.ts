@@ -10,9 +10,13 @@ import fileSignIcon from '../img/file-sign.svg?raw'
 
 type RemoteSigningDialogResult = {
 	recipientEmail: string
+	notificationLanguage: string
 	authType: { label: string; value: string }
 	password: string
 	tanTarget: string
+	mailSubject: string
+	mailMessage: string
+	mailSignatureText: string
 } | null
 
 type FileActionNode = {
@@ -55,7 +59,7 @@ const extractErrorMessage = (error: unknown): string | null => {
 const showRequestError = (error: unknown, fallbackLogLabel: string): void => {
 	const errorMsg = extractErrorMessage(error)
 	console.error(errorMsg)
-
+ 
 	if (errorMsg === 'Username or password or baseurl not set in settings') {
 		showError(
 			t(
@@ -174,9 +178,13 @@ const signFileRemotely = async (node: FileActionNode): Promise<void> => {
 				fileId,
 				fileName: node.basename,
 				recipientEmail: result.recipientEmail,
+				locale: result.notificationLanguage,
 				password: result.password ?? '',
 				tanTarget: result.tanTarget ?? '',
 				authType: result.authType?.label ?? '',
+				mailSubject: result.mailSubject ?? '',
+				mailMessage: result.mailMessage ?? '',
+				mailSignatureText: result.mailSignatureText ?? '',
 			},
 			{
 				headers: {

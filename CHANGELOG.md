@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 22.04.2026
+
+### Added
+
+- Notification language selector in remote signing dialog (auto-detects user's Nextcloud locale; supports German, English, French)
+- Optional email customization fields in remote signing dialog (subject, greeting text, signature text)
+- Webhook reachability hint in admin settings (signoSign/Universal server must reach Nextcloud)
+
+### Changed
+
+- Remote signing API call now passes `locale`, `mailSubject`, `mailMessage`, and `mailSignatureText` to signoSign/Universal
+- Default URL pre-filled with `https://universal.signosign.com/` when no URL is stored
+
 ## [1.0.1] - 20.04.2026
 
 ### Changed

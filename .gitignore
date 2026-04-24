@@ -15,3 +15,7 @@ CLAUDE.md
 translationtool.phar
 /translationfiles
 /temp
+
+/css/
+/js/
+/appinfo/signature.json

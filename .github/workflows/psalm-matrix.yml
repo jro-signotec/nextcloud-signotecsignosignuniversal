@@ -64,15 +64,20 @@ jobs:
 
       - name: Install dependencies
         run: |
-          composer remove nextcloud/ocp --dev
-          composer i
+          composer remove nextcloud/ocp --dev --ignore-platform-reqs
+          composer i --ignore-platform-reqs
 
 
       - name: Install dependencies # zizmor: ignore[template-injection]
         run: composer require --dev 'nextcloud/ocp:${{ matrix.ocp-version }}' --ignore-platform-reqs --with-dependencies
 
       - name: Run coding standards check
-        run: composer run psalm -- --threads=1 --monochrome --no-progress --output-format=github
+        run: |
+          if php -r "exit(PHP_VERSION_ID >= 80200 ? 0 : 1);"; then
+            composer run psalm -- --threads=1 --monochrome --no-progress --output-format=github
+          else
+            echo "Skipping psalm: PHP $(php -r 'echo PHP_VERSION;') < 8.2 (psalm/phar requires PHP 8.2+, app requires PHP 8.2+)"
+          fi
 
   summary:
     runs-on: ubuntu-latest

@@ -9,7 +9,7 @@ use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\AppFramework\OCS\OCSBadRequestException;
 use OCP\AppFramework\OCSController;
-use OCP\IConfig;
+use OCP\Config\IUserConfig;
 use OCP\IRequest;
 
 final class UserPrefsController extends OCSController {
@@ -19,7 +19,7 @@ final class UserPrefsController extends OCSController {
 	public function __construct(
 		string $appName,
 		IRequest $request,
-		private IConfig $config,
+		private IUserConfig $userPreferences,
 		private string $userId,
 	) {
 		parent::__construct($appName, $request);
@@ -29,7 +29,7 @@ final class UserPrefsController extends OCSController {
 	#[ApiRoute(verb: 'GET', url: '/userprefs')]
 	public function getPrefs(): DataResponse {
 		return new DataResponse([
-			'authType' => $this->config->getUserValue(
+			'authType' => $this->userPreferences->getValueString(
 				$this->userId,
 				$this->appName,
 				self::PREF_AUTH_TYPE,
@@ -45,7 +45,7 @@ final class UserPrefsController extends OCSController {
 			throw new OCSBadRequestException('Invalid authType');
 		}
 
-		$this->config->setUserValue($this->userId, $this->appName, self::PREF_AUTH_TYPE, $authType);
+		$this->userPreferences->setValueString($this->userId, $this->appName, self::PREF_AUTH_TYPE, $authType);
 
 		return new DataResponse(['authType' => $authType]);
 	}

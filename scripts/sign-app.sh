@@ -10,12 +10,28 @@ NC_APP_PATH="/var/www/html/apps/$APP_ID"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_DIR="$(dirname "$SCRIPT_DIR")"
-KEY_FILE="$REPO_DIR/temp/$APP_ID.key"
-CRT_FILE="$REPO_DIR/temp/$APP_ID.crt"
+
+CERT_DIR="/mnt/u/Zertifikate/Nextcloud"
+KEY_FILE="$CERT_DIR/$APP_ID.key"
+CRT_FILE="$CERT_DIR/$APP_ID.crt"
 SIGNATURE_OUT="$REPO_DIR/appinfo/signature.json"
 
 CONTAINER_TMP="/tmp/$APP_ID-signing"
 # ---------------------------------------------------------------------------
+
+cleanup() {
+  if [[ -n "$CONTAINER" ]]; then
+    docker exec "$CONTAINER" rm -rf "$CONTAINER_TMP" 2>/dev/null || true
+  fi
+}
+trap cleanup EXIT
+
+# Auto-mount U: if not mounted
+if [[ ! -d "/mnt/u" ]] || ! mountpoint -q /mnt/u; then
+  echo "Mounting U: drive..."
+  sudo mkdir -p /mnt/u
+  sudo mount -t drvfs U: /mnt/u
+fi
 
 # Check key + cert exist
 if [[ ! -f "$KEY_FILE" ]]; then
@@ -57,9 +73,6 @@ docker exec -u www-data "$CONTAINER" php occ integrity:sign-app \
 # Copy signature.json back to repo
 echo "Copying signature.json..."
 docker cp "$CONTAINER:$NC_APP_PATH/appinfo/signature.json" "$SIGNATURE_OUT"
-
-# Cleanup temp files in container
-docker exec "$CONTAINER" rm -rf "$CONTAINER_TMP"
 
 echo ""
 echo "Done: $SIGNATURE_OUT"

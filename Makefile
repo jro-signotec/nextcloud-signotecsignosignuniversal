@@ -13,7 +13,7 @@ EXCLUDES = \
   tsconfig.json stylelint.config.cjs vite.config.ts
 
 TAR_EXCLUDES  = $(foreach e,$(EXCLUDES),--exclude="./$e") --exclude="./*.phar" --exclude="./.*"
-RSYNC_EXCLUDES = $(foreach e,$(EXCLUDES),--exclude="$e") --exclude="*.phar" --exclude=".*"
+RSYNC_EXCLUDES = $(foreach e,$(EXCLUDES),--exclude="$e") --exclude="*.phar" --exclude=".*" --exclude="appinfo/signature.json"
 
 .PHONY: release sign deploy
 

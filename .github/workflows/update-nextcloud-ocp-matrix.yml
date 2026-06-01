@@ -23,8 +23,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        branches: ['master']
-        target: ['stable30']
+        branches: ['stable32']
+        target: ['stable32']
 
     name: update-nextcloud-ocp-${{ matrix.branches }}
 

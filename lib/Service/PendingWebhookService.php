@@ -298,7 +298,6 @@ final class PendingWebhookService {
 	private function cleanupRemoteResources(PendingWebhook $entity): bool {
 		$documentCleanupOk = true;
 
-
 		$documentId = $entity->getDocumentId();
 		if ($documentId !== null && ctype_digit($documentId)) {
 			$instanceTokenResult = $this->signoSignUniversal->getInstanceToken();

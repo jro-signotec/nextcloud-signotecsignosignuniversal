@@ -25,7 +25,6 @@ final class UniversalAdmin implements IIconSection {
 		return $this->l->t('signotec signoSign Settings');
 	}
 
-
 	#[\Override]
 	public function getIcon(): string {
 		return $this->urlGenerator->imagePath('core', 'actions/settings-dark.svg');

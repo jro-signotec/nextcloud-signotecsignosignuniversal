@@ -63,7 +63,6 @@ final class ApiController extends OCSController {
 		$fileName = $fileName !== '' ? $fileName : $fileData['fileName'];
 		$userId = $user->getUID();
 
-
 		$this->logger->info(self::LOG_PREFIX . 'starting local signing', [
 			'fileId' => $fileId,
 			'fileName' => $fileName,
